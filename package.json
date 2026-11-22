@@ -1,0 +1,21 @@
+{
+  "name": "7even",
+  "private": true,
+  "version": "0.1.0",
+  "description": "An A2A-native agent that runs on your Mac, managed from a web control room.",
+  "workspaces": [
+    "packages/core",
+    "apps/agent",
+    "apps/web"
+  ],
+  "engines": {
+    "node": ">=20"
+  },
+  "scripts": {
+    "build": "npm run build --workspace @7even/core && npm run build --workspace @7even/agent && npm run build --workspace @7even/web",
+    "dev:agent": "npm run dev --workspace @7even/agent",
+    "dev:web": "npm run dev --workspace @7even/web",
+    "typecheck": "npm run typecheck --workspaces --if-present"
+  },
+  "license": "UNLICENSED"
+}

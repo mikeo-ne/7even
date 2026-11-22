@@ -40,6 +40,18 @@ export const SKILLS: AgentSkill[] = [
     ],
   },
   {
+    id: "social",
+    name: "Run social and promotion",
+    description:
+      "Plan, write and prepare the social calendar for a brand or artist: weekly plan, post copy, alt text, captions, hashtags and a posting schedule. Publishing itself waits for approval.",
+    tags: ["social", "marketing", "content", "growth"],
+    examples: [
+      "Plan next week's posts for Baranga's album push",
+      "Turn this week's chart into an East Sound post",
+      "Write five X posts for the new blog story",
+    ],
+  },
+  {
     id: "scheduled",
     name: "Scheduled maintenance",
     description:

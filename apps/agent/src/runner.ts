@@ -1,6 +1,14 @@
-import { mkdir } from "node:fs/promises";
+import { access, mkdir, writeFile } from "node:fs/promises";
+import { constants } from "node:fs";
 import { join } from "node:path";
-import { buildTaskPrompt, extractApprovals, slugify, type Business, type Task } from "@7even/core";
+import {
+  buildTaskPrompt,
+  channelFile,
+  extractApprovals,
+  slugify,
+  type Business,
+  type Task,
+} from "@7even/core";
 import type { AgentStore } from "./db.js";
 import { BrainError, runBrain } from "./brain.js";
 import type { Config } from "./config.js";
@@ -93,7 +101,26 @@ export async function ensureWorkspace(config: Config, business: Business | null)
     ? business.workspace_path
     : join(config.workspaceRoot, business ? slugify(business.name) : "_general");
   await mkdir(dir, { recursive: true });
+  if (business) await writeChannelFile(dir, business);
   return dir;
+}
+
+/**
+ * Drop CHANNELS.md into the workspace once, and never touch it again: the owner
+ * edits it on their Mac and that copy wins over anything in this repo.
+ */
+async function writeChannelFile(dir: string, business: Business): Promise<void> {
+  const file = join(dir, "CHANNELS.md");
+  try {
+    await access(file, constants.F_OK);
+    return;
+  } catch {
+    // not there yet — write it
+  }
+  const slug = business.workspace_path
+    ? business.workspace_path.split("/").filter(Boolean).pop() ?? slugify(business.name)
+    : slugify(business.name);
+  await writeFile(file, channelFile(slug, business.name), "utf8");
 }
 
 export function isRunning(taskId: string): boolean {

@@ -34,6 +34,7 @@ export function buildTaskPrompt(input: PromptInput): string {
         business.instructions ? `Standing instructions:\n${business.instructions}` : "",
         business.workspace_path ? `Workspace: ${business.workspace_path}` : "",
         "Work only inside this workspace unless the task explicitly needs something else.",
+        "If the task is about social, promotion or publishing, read CHANNELS.md in the workspace first and follow it. Do not post, schedule, DM or comment without approval.",
       ]
         .filter(Boolean)
         .join("\n"),

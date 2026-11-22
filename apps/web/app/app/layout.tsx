@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
-import { CalendarClock, CheckCircle2, Inbox, Layers, LogOut, Network } from "lucide-react";
+import { CalendarClock, CheckCircle2, Inbox, Layers, LogOut, Megaphone, Network } from "lucide-react";
 import { createClient } from "@/lib/supabase/server";
 import { signOut } from "./actions";
 import { NavLink } from "./NavLink";
@@ -41,6 +41,7 @@ export default async function AppLayout({ children }: { children: React.ReactNod
     { href: "/app", label: "Overview", icon: Layers },
     { href: "/app/tasks", label: "Queue", icon: Inbox, badge: busy || undefined },
     { href: "/app/approvals", label: "Approvals", icon: CheckCircle2, badge: approvals || undefined },
+    { href: "/app/social", label: "Social", icon: Megaphone },
     { href: "/app/businesses", label: "Businesses", icon: Layers },
     { href: "/app/agents", label: "Agents", icon: Network },
     { href: "/app/schedules", label: "Schedules", icon: CalendarClock },

@@ -114,22 +114,67 @@ export default async function SocialPage() {
         <div className="space-y-5">
           <SocialComposer businesses={businesses} />
 
-          <Panel title="Channels">
-            <ul className="divide-y divide-line">
+          <Panel title="Where we post">
+            <div className="divide-y divide-line">
               {CHANNELS.map((channel) => {
                 const business = businesses.find((row) => row.slug === channel.slug);
+                const brand = channel.brand;
                 return (
-                  <li key={channel.slug} className="px-5 py-3">
-                    <p className="text-xs font-medium">{business?.name ?? channel.slug}</p>
-                    <p className="mt-1 text-[11px] text-mute">
-                      {channel.handles.length > 0
-                        ? channel.handles.map((handle) => `${handle.platform} ${handle.handle}`).join(" · ")
-                        : "No dedicated accounts yet"}
-                    </p>
-                  </li>
+                  <div key={channel.slug} className="px-5 py-4">
+                    <div className="flex items-center gap-2">
+                      <span
+                        className="size-2 rounded-full"
+                        style={{ backgroundColor: business?.colour ?? "#d7ff3e" }}
+                      />
+                      <p className="text-xs font-medium">{business?.name ?? channel.slug}</p>
+                    </div>
+
+                    {brand.length === 0 ? (
+                      <p className="mt-1.5 text-[11px] text-amber-300/80">
+                        No accounts. Drafts are for you to place.
+                      </p>
+                    ) : (
+                      <ul className="mt-1.5 space-y-1">
+                        {brand.map((account) => (
+                          <li key={`${account.platform}-${account.handle}`}>
+                            {account.state === "missing" ? (
+                              <span className="font-mono text-[10px] text-white/25 line-through">
+                                {account.platform} {account.handle}
+                              </span>
+                            ) : (
+                              <a
+                                href={account.url}
+                                target="_blank"
+                                rel="noreferrer"
+                                className="font-mono text-[10px] text-white/50 hover:text-signal"
+                              >
+                                {account.platform} {account.handle}
+                              </a>
+                            )}
+                            {account.state === "empty" && (
+                              <span className="ml-1.5 rounded bg-amber-400/10 px-1 py-0.5 text-[9px] text-amber-300">
+                                never posted
+                              </span>
+                            )}
+                            {account.state === "login-walled" && (
+                              <span className="ml-1.5 rounded bg-white/5 px-1 py-0.5 text-[9px] text-white/35">
+                                unverified
+                              </span>
+                            )}
+                          </li>
+                        ))}
+                      </ul>
+                    )}
+
+                    {channel.artists.length > 0 && (
+                      <p className="mt-2 text-[10px] text-white/30">
+                        plus {channel.artists.length} artist accounts
+                      </p>
+                    )}
+                  </div>
                 );
               })}
-            </ul>
+            </div>
           </Panel>
 
           <Panel title="Limits the agent checks">
@@ -147,6 +192,30 @@ export default async function SocialPage() {
           </Panel>
         </div>
       </div>
+
+      <Panel title="Artist accounts the label can plan with">
+        <ul className="grid gap-px bg-line sm:grid-cols-2">
+          {CHANNELS.filter((channel) => channel.slug === "7h-music-group")
+            .flatMap((channel) => channel.artists)
+            .filter((account) => account.platform === "Instagram" || account.platform === "TikTok")
+            .map((account) => (
+              <li key={`${account.platform}-${account.handle}`} className="bg-soft px-5 py-3">
+                <p className="text-xs font-medium text-white/80">{account.artist}</p>
+                <a
+                  href={account.url}
+                  target="_blank"
+                  rel="noreferrer"
+                  className="mt-0.5 block font-mono text-[10px] text-white/40 hover:text-signal"
+                >
+                  {account.platform} {account.handle}
+                </a>
+                {account.note && (
+                  <p className="mt-1 text-[10px] leading-relaxed text-white/30">{account.note}</p>
+                )}
+              </li>
+            ))}
+        </ul>
+      </Panel>
     </div>
   );
 }

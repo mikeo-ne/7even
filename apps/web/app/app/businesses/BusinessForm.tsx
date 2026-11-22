@@ -25,7 +25,7 @@ export function BusinessForm() {
       <form action={formAction} className="mt-4 space-y-3.5">
         <label className="block">
           <span className="mb-1.5 block text-xs text-mute">Name</span>
-          <input name="name" required placeholder="1NE Records" className={input} />
+          <input name="name" required placeholder="7H Music Group" className={input} />
         </label>
 
         <label className="block">
@@ -33,7 +33,7 @@ export function BusinessForm() {
           <textarea
             name="brief"
             rows={2}
-            placeholder="An independent label: 12 artists, 40 releases, royalties from 8 stores."
+            placeholder="A Kampala label and artist-services house: 4 artists, distribution, publishing, booking."
             className={`${input} resize-none`}
           />
         </label>
@@ -52,7 +52,7 @@ export function BusinessForm() {
           <span className="mb-1.5 block text-xs text-mute">Workspace folder (optional)</span>
           <input
             name="workspace_path"
-            placeholder="~/Businesses/1ne-records"
+            placeholder="~/Businesses/7h-music-group"
             className={input}
           />
           <span className="mt-1.5 block text-[11px] text-white/30">

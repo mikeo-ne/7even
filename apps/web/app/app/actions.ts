@@ -50,6 +50,40 @@ export async function createBusiness(_prev: ActionState, formData: FormData): Pr
   return { ok: `${name} is ready. The bridge will pick it up on its next tick.` };
 }
 
+export async function updateBusiness(_prev: ActionState, formData: FormData): Promise<ActionState> {
+  const { supabase, user } = await requireUser();
+
+  const id = String(formData.get("id") ?? "");
+  const name = String(formData.get("name") ?? "").trim();
+  const brief = String(formData.get("brief") ?? "").trim();
+  const instructions = String(formData.get("instructions") ?? "").trim();
+  const workspace = String(formData.get("workspace_path") ?? "").trim();
+  const autonomy = String(formData.get("autonomy") ?? "ask") === "auto" ? "auto" : "ask";
+  const colour = String(formData.get("colour") ?? "#d7ff3e");
+
+  if (!id) return { error: "That business no longer exists." };
+  if (!name) return { error: "Give the business a name." };
+
+  const { error } = await supabase
+    .from("businesses")
+    .update({
+      name,
+      brief: brief || null,
+      instructions: instructions || null,
+      workspace_path: workspace || null,
+      autonomy,
+      colour,
+    })
+    .eq("id", id)
+    .eq("owner_id", user.id);
+
+  if (error) return { error: error.message };
+
+  revalidatePath("/app");
+  revalidatePath("/app/businesses");
+  return { ok: `${name} updated. The agent reads the new brief on its next task.` };
+}
+
 export async function queueTask(_prev: ActionState, formData: FormData): Promise<ActionState> {
   const { supabase, user } = await requireUser();
 

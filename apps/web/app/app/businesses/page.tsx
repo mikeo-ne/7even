@@ -1,6 +1,7 @@
 import type { Business } from "@7even/core";
 import { createClient } from "@/lib/supabase/server";
 import { Empty, PageHeader, Panel } from "@/lib/ui";
+import { BusinessEditor } from "./BusinessEditor";
 import { BusinessForm } from "./BusinessForm";
 
 export const dynamic = "force-dynamic";
@@ -60,6 +61,7 @@ export default async function BusinessesPage() {
                       </pre>
                     </details>
                   )}
+                  <BusinessEditor business={business} />
                 </li>
               ))}
             </ul>

@@ -70,7 +70,7 @@ const FIRST_POST = {
 
 const rows = [];
 for (const channel of CHANNELS) {
-  for (const account of [...channel.brand, ...channel.artists]) {
+  for (const account of [...channel.brand, ...channel.artists, ...channel.deferred]) {
     rows.push({ channel, account, key: `${channel.slug}|${account.platform}|${account.handle}` });
   }
 }
@@ -82,7 +82,7 @@ const NAMES = {
   "east-sound": "East Sound Technologies",
 };
 
-const toCreate = rows.filter((row) => row.account.state === "available");
+const toCreate = rows.filter((row) => row.account.state === "deferred");
 const neverPosted = rows.filter((row) => row.account.state === "empty");
 
 const problems = [];
@@ -93,16 +93,20 @@ sections.push(`# Channels to set up
 Generated from \`packages/core/src/channels.ts\` by \`scripts/channel-setup.mjs\`.
 Every handle below was checked on 22 November 2026.
 
+The agent is working with what exists today: the label, Baranga and Mike 1ne.
+Nothing below is blocking that work — these are handles worth claiming when you
+get to them, written up so the decision is already made.
+
 7even cannot create accounts: that needs a verified human with a phone. What it
 can do is remove every decision — the handle, the bio, the link, the first post,
-and the limit each one has to fit inside. Do this once, then tell the agent, and
-it will plan against the real accounts.
+and the limit each one has to fit inside. Claim them, then tell the agent, and it
+will start planning against them.
 
-**${toCreate.length} accounts to create · ${neverPosted.length} that exist but have never posted.**
+**${toCreate.length} handles to claim later · ${neverPosted.length} accounts that exist and have never posted.**
 `);
 
 if (toCreate.length > 0) {
-  sections.push("\n---\n\n## Create these\n");
+  sections.push("\n---\n\n## Claim these when you get to them\n");
   for (const { channel, account, key } of toCreate) {
     const setup = SETUP[key];
     if (!setup) {
@@ -148,7 +152,7 @@ ${account.note ? `> ${account.note}` : ""}
 }
 
 if (neverPosted.length > 0) {
-  sections.push("\n---\n\n## Already exist, but empty\n");
+  sections.push("\n---\n\n## Already exist, but empty — worth doing first\n");
   for (const { channel, account, key } of neverPosted) {
     const post = FIRST_POST[key];
     const postLength = post ? [...post].length : 0;
@@ -171,12 +175,12 @@ sections.push(`
 ## After you create them
 
 1. Sign in on the Mac and keep the sessions alive there; the agent works from that machine.
-2. Tell 7even the handles exist, or edit \`CHANNELS.md\` in each workspace — the agent reads it before any social work.
-3. Then the Monday plan can allocate real accounts instead of drafting "for owner to place".
+2. Tell 7even the handle exists, or edit \`CHANNELS.md\` in each workspace — the agent reads it before any social work.
+3. Until then the agent drafts into the workspace and marks it "for owner to place", rather than planning a schedule it cannot keep.
 
 ## Deliberately not in this list
 
-- **Smokie Cee's Instagram.** His TikTok is active; no Instagram is published anywhere. That is his account to make, not the label's.
+- **Mr Fallback and Smokie Cee.** Paused by you, so no handles are being proposed for either. Their existing accounts stay on record in \`CHANNELS.md\` so nothing has to be re-researched when you bring them back.
 - **Any automated posting.** Nothing here connects an API. The agent writes, you publish.
 `);
 
@@ -190,4 +194,4 @@ if (problems.length > 0) {
   process.exit(1);
 }
 
-console.log(`docs/channels-setup.md — ${toCreate.length} to create, ${neverPosted.length} to fill, ${doc.length} chars, all copy within limits.`);
+console.log(`docs/channels-setup.md — ${toCreate.length} to claim, ${neverPosted.length} to post, ${doc.length} chars, all copy within limits.`);

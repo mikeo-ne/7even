@@ -1,6 +1,6 @@
 import { createClient } from "@/lib/supabase/server";
 import { Empty, PageHeader, Panel, StatusPill } from "@/lib/ui";
-import { CHANNELS, PLATFORM_LIMITS } from "@7even/core";
+import { CHANNELS, PLATFORM_LIMITS, type Account, type AccountState } from "@7even/core";
 import type { Business, Task } from "@7even/core";
 import { SocialComposer } from "./SocialComposer";
 
@@ -18,10 +18,56 @@ type Post = {
 
 const PLATFORMS = ["Instagram", "X", "TikTok", "YouTube", "Facebook", "LinkedIn", "WhatsApp Channel"];
 
-/** Pull a platform out of a task title, because the agent is asked to say it. */
 function platformOf(text: string): string {
   const found = PLATFORMS.find((platform) => new RegExp(`\\b${platform}\\b`, "i").test(text));
   return found ?? "—";
+}
+
+const STATE_BADGE: Partial<Record<AccountState, { label: string; className: string }>> = {
+  empty: { label: "never posted", className: "bg-amber-400/10 text-amber-300" },
+  "owner-confirmed": { label: "from you", className: "bg-white/5 text-white/35" },
+  deferred: { label: "not yet", className: "bg-white/5 text-white/25" },
+};
+
+function AccountLine({ account }: { account: Account }) {
+  const badge = STATE_BADGE[account.state];
+
+  const label = (
+    <>
+      <span className="font-mono text-[10px] text-white/50">
+        {account.artist ? `${account.artist} · ` : ""}
+        {account.platform} {account.handle}
+        {account.owner ? " (yours)" : ""}
+      </span>
+      {badge && (
+        <span className={`ml-1.5 rounded px-1 py-0.5 text-[9px] ${badge.className}`}>
+          {badge.label}
+        </span>
+      )}
+    </>
+  );
+
+  if (!account.url || account.state === "missing" || account.state === "deferred") {
+    return (
+      <li className={account.state === "deferred" ? "opacity-45" : undefined}>
+        {account.state === "missing" ? (
+          <span className="font-mono text-[10px] text-white/25 line-through">
+            {account.platform} {account.handle}
+          </span>
+        ) : (
+          label
+        )}
+      </li>
+    );
+  }
+
+  return (
+    <li>
+      <a href={account.url} target="_blank" rel="noreferrer" className="hover:[&>span:first-child]:text-signal">
+        {label}
+      </a>
+    </li>
+  );
 }
 
 export default async function SocialPage() {
@@ -40,7 +86,7 @@ export default async function SocialPage() {
   const byId = new Map(businesses.map((business) => [business.id, business]));
 
   const isSocial = (task: Task) =>
-    /social|post|caption|instagram|tiktok|youtube|hashtag|content|promote|promotion|campaign|schedule.*post/i.test(
+    /social|post|caption|instagram|tiktok|youtube|hashtag|content|promote|promotion|campaign/i.test(
       `${task.title ?? ""} ${task.prompt ?? ""}`,
     );
 
@@ -67,12 +113,18 @@ export default async function SocialPage() {
     count: posts.filter((post) => post.platform === platform).length,
   })).filter((row) => row.count > 0);
 
+  const pausedEveryone = CHANNELS.flatMap((channel) =>
+    channel.paused.map((person) => ({ person, business: channel.slug })),
+  ).filter(
+    (entry, index, all) => all.findIndex((other) => other.person.name === entry.person.name) === index,
+  );
+
   return (
     <div className="space-y-7">
       <PageHeader
         eyebrow="Reach"
         title="Social"
-        description="Every post the agent has planned or drafted, by business and platform. Publishing always waits for your approval."
+        description="Working set: the label, Baranga and Mike 1ne. Every post the agent plans or drafts lands here, and publishing always waits for you."
       />
 
       <div className="grid gap-5 lg:grid-cols-[1.4fr_1fr]">
@@ -118,7 +170,6 @@ export default async function SocialPage() {
             <div className="divide-y divide-line">
               {CHANNELS.map((channel) => {
                 const business = businesses.find((row) => row.slug === channel.slug);
-                const brand = channel.brand;
                 return (
                   <div key={channel.slug} className="px-5 py-4">
                     <div className="flex items-center gap-2">
@@ -129,100 +180,78 @@ export default async function SocialPage() {
                       <p className="text-xs font-medium">{business?.name ?? channel.slug}</p>
                     </div>
 
-                    {brand.length === 0 ? (
-                      <p className="mt-1.5 text-[11px] text-amber-300/80">
-                        No accounts on any platform yet.
-                      </p>
-                    ) : (
-                      <ul className="mt-1.5 space-y-1">
-                        {brand.map((account) => (
-                          <li key={`${account.platform}-${account.handle}`}>
-                            {account.state === "missing" ? (
-                              <span className="font-mono text-[10px] text-white/25 line-through">
-                                {account.platform} {account.handle}
-                              </span>
-                            ) : account.url ? (
-                              <a
-                                href={account.url}
-                                target="_blank"
-                                rel="noreferrer"
-                                className="font-mono text-[10px] text-white/50 hover:text-signal"
-                              >
-                                {account.platform} {account.handle}
-                              </a>
-                            ) : (
-                              <span className="font-mono text-[10px] text-signal/70">
-                                {account.platform} {account.handle}
-                              </span>
-                            )}
-                            {account.state === "empty" && (
-                              <span className="ml-1.5 rounded bg-amber-400/10 px-1 py-0.5 text-[9px] text-amber-300">
-                                never posted
-                              </span>
-                            )}
-                            {account.state === "owner-confirmed" && (
-                              <span className="ml-1.5 rounded bg-white/5 px-1 py-0.5 text-[9px] text-white/35">
-                                from you
-                              </span>
-                            )}
-                            {account.state === "available" && (
-                              <span className="ml-1.5 rounded bg-signal/10 px-1 py-0.5 text-[9px] text-signal">
-                                free — register
-                              </span>
-                            )}
-                          </li>
-                        ))}
-                      </ul>
-                    )}
+                    <ul className="mt-1.5 space-y-1">
+                      {channel.brand.map((account) => (
+                        <AccountLine key={`${account.platform}-${account.handle}`} account={account} />
+                      ))}
+                    </ul>
 
                     {channel.artists.length > 0 && (
-                      <p className="mt-2 text-[10px] text-white/30">
-                        plus {channel.artists.length} artist accounts
-                      </p>
+                      <>
+                        <p className="mt-2.5 text-[10px] tracking-wide text-white/25 uppercase">
+                          Artists
+                        </p>
+                        <ul className="mt-1 space-y-1">
+                          {channel.artists.map((account) => (
+                            <AccountLine
+                              key={`artist-${account.platform}-${account.handle}`}
+                              account={account}
+                            />
+                          ))}
+                        </ul>
+                      </>
+                    )}
+
+                    {channel.deferred.length > 0 && (
+                      <>
+                        <p className="mt-2.5 text-[10px] tracking-wide text-white/25 uppercase">
+                          You will create
+                        </p>
+                        <ul className="mt-1 space-y-1">
+                          {channel.deferred.map((account) => (
+                            <AccountLine
+                              key={`deferred-${account.platform}-${account.handle}`}
+                              account={account}
+                            />
+                          ))}
+                        </ul>
+                      </>
                     )}
                   </div>
                 );
               })}
             </div>
           </Panel>
-
-          <Panel title="Limits the agent checks">
-            <ul className="divide-y divide-line">
-              {PLATFORM_LIMITS.slice(0, 5).map((limit) => (
-                <li key={limit.platform} className="flex items-center justify-between px-5 py-2.5">
-                  <span className="text-[11px] text-white/60">{limit.platform}</span>
-                  <span className="font-mono text-[10px] text-white/30">
-                    {limit.post}
-                    {limit.hashtags ? ` · ${limit.hashtags} tags` : ""}
-                  </span>
-                </li>
-              ))}
-            </ul>
-          </Panel>
         </div>
       </div>
 
-      <Panel title="Artist accounts the label can plan with">
+      <Panel title="Paused — off limits to the agent" meta={<span className="font-mono text-[10px] text-white/30">no posts, tags or plans</span>}>
+        <ul className="divide-y divide-line">
+          {pausedEveryone.map(({ person }) => (
+            <li key={person.name} className="px-5 py-4">
+              <p className="text-sm font-medium text-white/70">{person.name}</p>
+              <p className="mt-1 text-[11px] leading-relaxed text-mute">{person.reason}</p>
+              <p className="mt-1.5 font-mono text-[10px] text-white/25">
+                {person.handles
+                  .map((handle) => `${handle.platform} ${handle.handle}`)
+                  .join("  ·  ")}
+              </p>
+            </li>
+          ))}
+        </ul>
+      </Panel>
+
+      <Panel title="Limits the agent checks">
         <ul className="grid gap-px bg-line sm:grid-cols-2">
-          {CHANNELS.filter((channel) => channel.slug === "7h-music-group")
-            .flatMap((channel) => channel.artists)
-            .filter((account) => account.platform === "Instagram" || account.platform === "TikTok")
-            .map((account) => (
-              <li key={`${account.platform}-${account.handle}`} className="bg-soft px-5 py-3">
-                <p className="text-xs font-medium text-white/80">{account.artist}</p>
-                <a
-                  href={account.url}
-                  target="_blank"
-                  rel="noreferrer"
-                  className="mt-0.5 block font-mono text-[10px] text-white/40 hover:text-signal"
-                >
-                  {account.platform} {account.handle}
-                </a>
-                {account.note && (
-                  <p className="mt-1 text-[10px] leading-relaxed text-white/30">{account.note}</p>
-                )}
-              </li>
-            ))}
+          {PLATFORM_LIMITS.map((limit) => (
+            <li key={limit.platform} className="flex items-center justify-between bg-soft px-5 py-2.5">
+              <span className="text-[11px] text-white/60">{limit.platform}</span>
+              <span className="font-mono text-[10px] text-white/30">
+                {limit.post}
+                {limit.hashtags ? ` · ${limit.hashtags} tags` : ""}
+              </span>
+            </li>
+          ))}
         </ul>
       </Panel>
     </div>

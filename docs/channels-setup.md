@@ -3,17 +3,21 @@
 Generated from `packages/core/src/channels.ts` by `scripts/channel-setup.mjs`.
 Every handle below was checked on 22 November 2026.
 
+The agent is working with what exists today: the label, Baranga and Mike 1ne.
+Nothing below is blocking that work — these are handles worth claiming when you
+get to them, written up so the decision is already made.
+
 7even cannot create accounts: that needs a verified human with a phone. What it
 can do is remove every decision — the handle, the bio, the link, the first post,
-and the limit each one has to fit inside. Do this once, then tell the agent, and
-it will plan against the real accounts.
+and the limit each one has to fit inside. Claim them, then tell the agent, and it
+will start planning against them.
 
-**4 accounts to create · 2 that exist but have never posted.**
+**4 handles to claim later · 2 accounts that exist and have never posted.**
 
 
 ---
 
-## Create these
+## Claim these when you get to them
 
 
 ### 7H Music Group — TikTok @7hmusicgroup
@@ -41,7 +45,7 @@ Baranga. Mr Fallback. Mike 1ne. Smokie Cee.
 Demos: 7hmusicgroupug.vercel.app
 ```
 
-> Checked: no label TikTok exists. The same handle is taken on Instagram and X, so register it here before anyone else does. Suggested handle: @7hmusicgroup.
+> Free, and the same handle is taken on Instagram and X, so it is worth claiming early. Owner will register it later — do not plan TikTok for the label until then.
 
 
 ### 7H Music Blog — X @7hmusicblog
@@ -67,7 +71,7 @@ We cover East African music without the press release. Uganda desk, Kenya desk, 
 66 stories in. More this week.
 ```
 
-> Checked: the handle is free on X. Suggested handle: @7hmusicblog.
+> Verified free on X. Owner will register it later; hold any X drafts until then.
 
 
 ### 7H Music Blog — TikTok @7hmusic.blog
@@ -91,7 +95,7 @@ Claim it at https://www.tiktok.com/signup — search the handle first to confirm
 One story, ninety seconds, no press release. Uganda and Kenya desks, every week.
 ```
 
-> Checked: free, and it matches the Instagram handle. Suggested handle: @7hmusic.blog.
+> Free, and it matches the Instagram handle exactly. Owner will register it later.
 
 
 ### East Sound Technologies — TikTok @eastsoundtech
@@ -117,17 +121,17 @@ Your song played on radio in Gulu at 2am. Here is the clip, the station and the 
 That is the product. Free while we build the panel.
 ```
 
-> Checked: free. @eas_tsound is also free if you want the TikTok to match Instagram. Suggested handle: @eastsoundtech.
+> Free. Owner will register it later. @eas_tsound is also free on TikTok if the handle should match Instagram.
 
 
 ---
 
-## Already exist, but empty
+## Already exist, but empty — worth doing first
 
 
 ### 7H Music Group — X @7hmusicgroup
 
-Joined Oct 2026. 0 posts, 0 followers, 2 following.
+Joined Oct 2026. 0 posts, 0 followers. Has never posted — the first one is the introduction, so do not open with a thread.
 
 **First post** (208 / 280 characters):
 
@@ -144,7 +148,7 @@ Post it as a single post, then pin it. Do not open with a thread.
 
 ### East Sound Technologies — X @EastSoundTech
 
-Joined Nov 2026. 0 posts, 1 follower. The bio claims 26 stations monitored live — confirm that figure before repeating it anywhere.
+Joined Nov 2026. 0 posts, 1 follower. The bio claims 26 stations monitored live — confirm that number before repeating it anywhere.
 
 **First post** (233 / 280 characters):
 
@@ -164,10 +168,10 @@ Post it as a single post, then pin it. Do not open with a thread.
 ## After you create them
 
 1. Sign in on the Mac and keep the sessions alive there; the agent works from that machine.
-2. Tell 7even the handles exist, or edit `CHANNELS.md` in each workspace — the agent reads it before any social work.
-3. Then the Monday plan can allocate real accounts instead of drafting "for owner to place".
+2. Tell 7even the handle exists, or edit `CHANNELS.md` in each workspace — the agent reads it before any social work.
+3. Until then the agent drafts into the workspace and marks it "for owner to place", rather than planning a schedule it cannot keep.
 
 ## Deliberately not in this list
 
-- **Smokie Cee's Instagram.** His TikTok is active; no Instagram is published anywhere. That is his account to make, not the label's.
+- **Mr Fallback and Smokie Cee.** Paused by you, so no handles are being proposed for either. Their existing accounts stay on record in `CHANNELS.md` so nothing has to be re-researched when you bring them back.
 - **Any automated posting.** Nothing here connects an API. The agent writes, you publish.

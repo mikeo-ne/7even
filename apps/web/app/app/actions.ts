@@ -130,6 +130,15 @@ export async function decideApproval(formData: FormData): Promise<void> {
     .eq("id", id)
     .eq("owner_id", user.id);
 
+  // A post waiting on this decision becomes publishable — or is dropped. The
+  // publisher only ever picks up status = approved with a slot that has arrived.
+  await supabase
+    .from("posts")
+    .update({ status: approved ? "approved" : "cancelled" })
+    .eq("approval_id", id)
+    .eq("owner_id", user.id)
+    .eq("status", "pending_approval");
+
   if (approval.task_id) {
     await supabase.from("task_events").insert({
       task_id: approval.task_id,
@@ -271,4 +280,38 @@ export async function signOut(): Promise<void> {
   const supabase = await createClient();
   await supabase.auth.signOut();
   redirect("/");
+}
+
+export async function decidePost(formData: FormData): Promise<void> {
+  const { supabase, user } = await requireUser();
+  const id = String(formData.get("post_id") ?? "");
+  const decision = String(formData.get("decision") ?? "");
+  if (!id || !decision) return;
+
+  const status =
+    decision === "approve" ? "approved" : decision === "cancel" ? "cancelled" : "pending_approval";
+  if (!["approve", "cancel", "hold"].includes(decision)) return;
+
+  await supabase.from("posts").update({ status }).eq("id", id).eq("owner_id", user.id);
+
+  revalidatePath("/app/social");
+  revalidatePath("/app/approvals");
+}
+
+export async function schedulePost(formData: FormData): Promise<void> {
+  const { supabase, user } = await requireUser();
+  const id = String(formData.get("post_id") ?? "");
+  const when = String(formData.get("scheduled_for") ?? "").trim();
+  if (!id) return;
+
+  const iso = when ? new Date(when).toISOString() : null;
+  if (when && Number.isNaN(Date.parse(when))) return;
+
+  await supabase
+    .from("posts")
+    .update({ scheduled_for: iso })
+    .eq("id", id)
+    .eq("owner_id", user.id);
+
+  revalidatePath("/app/social");
 }

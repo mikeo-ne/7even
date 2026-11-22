@@ -5,7 +5,9 @@ import {
   buildTaskPrompt,
   channelFile,
   extractApprovals,
+  extractPostDrafts,
   slugify,
+  validateDrafts,
   type Business,
   type Task,
 } from "@7even/core";
@@ -54,7 +56,44 @@ export async function runTask(store: AgentStore, config: Config, task: Task): Pr
       timeoutMs: Number(process.env.SEVEN_TASK_TIMEOUT_MS ?? 15 * 60_000),
     });
 
-    const { cleaned, approvals } = extractApprovals(run.text || "");
+    // Posts first: a draft block is more specific than an APPROVAL: line, and
+    // saving it is what lets a human approve a real object rather than prose.
+    const { cleaned: withoutPosts, drafts } = extractPostDrafts(run.text || "");
+    const { valid, problems } = validateDrafts(drafts);
+
+    const saved = [];
+    for (const draft of valid) {
+      const post = await store.createPost({
+        ownerId: task.owner_id,
+        businessId: task.business_id,
+        taskId: task.id,
+        approvalId: null,
+        draft,
+      });
+      if (post) saved.push(post);
+    }
+
+    if (problems.length > 0) {
+      await store.event(
+        task.id,
+        "error",
+        `Refused ${problems.length} post draft(s):\n${problems
+          .map((entry) => `• #${entry.index + 1}: ${entry.problem}`)
+          .join("\n")}`,
+      );
+    }
+
+    if (saved.length > 0) {
+      await store.event(
+        task.id,
+        "output",
+        `Saved ${saved.length} post draft(s) for approval:\n${saved
+          .map((post) => `• ${post.platform} ${post.account_handle}: ${post.caption.slice(0, 80)}`)
+          .join("\n")}`,
+      );
+    }
+
+    const { cleaned, approvals } = extractApprovals(withoutPosts);
 
     for (const action of approvals) {
       await store.queueApproval({

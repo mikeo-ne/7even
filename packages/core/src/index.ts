@@ -3,3 +3,6 @@ export * from "./a2a.js";
 export * from "./skills.js";
 export * from "./prompt.js";
 export * from "./channels.js";
+export * from "./posts.js";
+export * from "./publishers.js";
+export * from "./scheduler.js";

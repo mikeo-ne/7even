@@ -20,6 +20,18 @@ export type Config = {
     model: string;
   };
   pollMs: number;
+  /**
+   * Social publishing credentials. Long-lived platform tokens only — never a
+   * password, never a session cookie. Absent key means that platform cannot post,
+   * and the agent says so rather than retrying.
+   */
+  social: {
+    publishEnabled: boolean;
+    tokens: Record<
+      string,
+      { accessToken: string; accountId?: string; extra?: Record<string, string> }
+    >;
+  };
 };
 
 export const CONFIG_DIR = join(homedir(), ".7even");
@@ -40,6 +52,7 @@ const DEFAULTS: Config = {
     model: "claude-sonnet-4-5-20250929",
   },
   pollMs: 2000,
+  social: { publishEnabled: false, tokens: {} },
 };
 
 export async function loadConfig(): Promise<Config> {
@@ -55,6 +68,10 @@ export async function loadConfig(): Promise<Config> {
     ...DEFAULTS,
     ...file,
     brain: { ...DEFAULTS.brain, ...(file.brain ?? {}) },
+    social: {
+      publishEnabled: file.social?.publishEnabled ?? DEFAULTS.social.publishEnabled,
+      tokens: { ...(file.social?.tokens ?? {}) },
+    },
   };
 
   // Environment always wins, so `SUPABASE_URL=... 7even start` works in CI or launchd.
@@ -67,6 +84,26 @@ export async function loadConfig(): Promise<Config> {
   config.brain.model = env.SEVEN_MODEL || config.brain.model;
   if (env.SEVEN_BRAIN === "claude-cli" || env.SEVEN_BRAIN === "anthropic-api") {
     config.brain.mode = env.SEVEN_BRAIN;
+  }
+  // Publishing stays off unless it is switched on deliberately.
+  if (env.SEVEN_PUBLISH === "1" || env.SEVEN_PUBLISH === "true") {
+    config.social.publishEnabled = true;
+  }
+  for (const platform of ["x", "instagram", "tiktok"] as const) {
+    const token = env[`SEVEN_${platform.toUpperCase()}_TOKEN`];
+    if (token) {
+      config.social.tokens[platform] = {
+        ...(config.social.tokens[platform] ?? { accessToken: "" }),
+        accessToken: token,
+      };
+    }
+    const accountId = env[`SEVEN_${platform.toUpperCase()}_ACCOUNT_ID`];
+    if (accountId) {
+      config.social.tokens[platform] = {
+        ...(config.social.tokens[platform] ?? { accessToken: "" }),
+        accountId,
+      };
+    }
   }
 
   return config;

@@ -1,4 +1,5 @@
 import type { Business } from "./types.js";
+import { POST_CONTRACT } from "./posts.js";
 
 export type PromptInput = {
   prompt: string;
@@ -64,6 +65,12 @@ export function buildTaskPrompt(input: PromptInput): string {
         "- Before any irreversible action, write the exact action you want to take on its own line starting with `APPROVAL:` and stop.",
       ].join("\n"),
     );
+  }
+
+  // Only when the task is actually about posting, so a spreadsheet task is not
+  // handed a format it will try to use anyway.
+  if (/\b(post|posts|caption|instagram|tiktok|social|thread|reel|schedule)\b/i.test(prompt)) {
+    sections.push(POST_CONTRACT);
   }
 
   sections.push(`## Task\n${prompt}`);

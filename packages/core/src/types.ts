@@ -115,3 +115,67 @@ export function slugify(input: string): string {
     .slice(0, 48);
   return base || "business";
 }
+
+/* ---------------------------------------------------------------- posts --- */
+
+export type PostPlatform = "instagram" | "tiktok" | "x" | "youtube" | "facebook" | "linkedin";
+export type PostFormat = "image" | "carousel" | "reel" | "video" | "story" | "text" | "thread";
+export type PostStatus =
+  | "draft"
+  | "pending_approval"
+  | "approved"
+  | "publishing"
+  | "published"
+  | "failed"
+  | "cancelled";
+
+/** Who the account belongs to. A label post and an artist post are not the same thing. */
+export type AccountRole = "label" | "artist" | "owner";
+
+export type Post = {
+  id: string;
+  owner_id: string;
+  business_id: string | null;
+  task_id: string | null;
+  approval_id: string | null;
+  platform: PostPlatform;
+  account_handle: string;
+  account_role: AccountRole;
+  format: PostFormat;
+  caption: string;
+  alt_text: string | null;
+  hashtags: string[];
+  link: string | null;
+  media_urls: string[];
+  scheduled_for: string | null;
+  status: PostStatus;
+  external_id: string | null;
+  error: string | null;
+  published_at: string | null;
+  created_at: string;
+};
+
+/**
+ * What the brain emits for a post. Small on purpose: if the model can invent a
+ * field, it will, and every invented field is something to validate later.
+ */
+export type PostDraft = {
+  platform: PostPlatform;
+  account_handle: string;
+  account_role: AccountRole;
+  format: PostFormat;
+  caption: string;
+  alt_text?: string;
+  hashtags?: string[];
+  link?: string;
+  media_urls?: string[];
+  scheduled_for?: string;
+};
+
+export type PublishResult = {
+  ok: boolean;
+  externalId?: string;
+  error?: string;
+  /** True when the platform needs something the agent cannot supply (app review, 2FA). */
+  needsHuman?: boolean;
+};

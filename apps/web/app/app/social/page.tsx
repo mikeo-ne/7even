@@ -3,10 +3,12 @@ import { Empty, PageHeader, Panel, StatusPill } from "@/lib/ui";
 import { CHANNELS, PLATFORM_LIMITS, type Account, type AccountState } from "@7even/core";
 import type { Business, Task } from "@7even/core";
 import { SocialComposer } from "./SocialComposer";
+import { PostCard } from "./PostCard";
+import type { Post as SocialPost } from "@7even/core";
 
 export const dynamic = "force-dynamic";
 
-type Post = {
+type TaskDraft = {
   business: string;
   colour: string;
   title: string;
@@ -78,8 +80,9 @@ function AccountLine({ account }: { account: Account }) {
 export default async function SocialPage() {
   const supabase = await createClient();
 
-  const [{ data: businessRows }, { data: taskRows }] = await Promise.all([
+  const [{ data: businessRows }, { data: postRows }, { data: taskRows }] = await Promise.all([
     supabase.from("businesses").select("*").order("created_at"),
+    supabase.from("posts").select("*").order("created_at", { ascending: false }).limit(100),
     supabase
       .from("tasks")
       .select("id,title,prompt,status,business_id,created_at")
@@ -89,13 +92,21 @@ export default async function SocialPage() {
 
   const businesses = (businessRows as Business[]) ?? [];
   const byId = new Map(businesses.map((business) => [business.id, business]));
+  const allPosts = (postRows as SocialPost[]) ?? [];
+  const waiting = allPosts.filter((post) => post.status === "pending_approval");
+  const queued = allPosts.filter(
+    (post) => post.status === "approved" || post.status === "publishing",
+  );
+  const history = allPosts.filter((post) =>
+    ["published", "failed", "cancelled", "draft"].includes(post.status),
+  );
 
   const isSocial = (task: Task) =>
     /social|post|caption|instagram|tiktok|youtube|hashtag|content|promote|promotion|campaign/i.test(
       `${task.title ?? ""} ${task.prompt ?? ""}`,
     );
 
-  const posts: Post[] = ((taskRows as Task[]) ?? [])
+  const posts: TaskDraft[] = ((taskRows as Task[]) ?? [])
     .filter(isSocial)
     .map((task) => {
       const business = task.business_id ? byId.get(task.business_id) : undefined;
@@ -133,40 +144,84 @@ export default async function SocialPage() {
       />
 
       <div className="grid gap-5 lg:grid-cols-[1.4fr_1fr]">
-        <Panel
-          title={`Planned and drafted (${posts.length})`}
-          meta={
-            perPlatform.length > 0 ? (
-              <span className="font-mono text-[10px] text-white/30">
-                {perPlatform.map((row) => `${row.platform} ${row.count}`).join(" · ")}
-              </span>
-            ) : undefined
-          }
-        >
-          {posts.length === 0 ? (
-            <Empty text="Nothing social yet. Ask for a post below, or wait for the Monday plan to run." />
-          ) : (
-            <ul className="divide-y divide-line">
-              {posts.map((post) => (
-                <li key={post.id} className="flex items-start justify-between gap-3 px-5 py-3.5">
-                  <div className="min-w-0">
-                    <div className="flex items-center gap-2">
-                      <span
-                        className="size-2 shrink-0 rounded-full"
-                        style={{ backgroundColor: post.colour }}
-                      />
-                      <p className="truncate text-sm">{post.title}</p>
-                    </div>
-                    <p className="mt-1 font-mono text-[10px] text-white/30">
-                      {post.business} · {post.platform} · {post.when}
-                    </p>
-                  </div>
-                  <StatusPill status={post.status} />
-                </li>
-              ))}
-            </ul>
+        <div className="space-y-5">
+          <Panel
+            title={`Waiting on you (${waiting.length})`}
+            meta={<span className="font-mono text-[10px] text-white/30">approve to publish</span>}
+          >
+            {waiting.length === 0 ? (
+              <Empty text="No drafts waiting. When the agent writes a post it lands here with the exact copy." />
+            ) : (
+              <ul className="divide-y divide-line">
+                {waiting.map((post) => {
+                  const business = post.business_id ? byId.get(post.business_id) : undefined;
+                  return (
+                    <PostCard
+                      key={post.id}
+                      post={post}
+                      businessName={business?.name ?? "—"}
+                      colour={business?.colour ?? "#d7ff3e"}
+                    />
+                  );
+                })}
+              </ul>
+            )}
+          </Panel>
+
+          {queued.length > 0 && (
+            <Panel
+              title={`Approved, waiting for its slot (${queued.length})`}
+              meta={<span className="font-mono text-[10px] text-white/30">publishes when due</span>}
+            >
+              <ul className="divide-y divide-line">
+                {queued.map((post) => {
+                  const business = post.business_id ? byId.get(post.business_id) : undefined;
+                  return (
+                    <PostCard
+                      key={post.id}
+                      post={post}
+                      businessName={business?.name ?? "—"}
+                      colour={business?.colour ?? "#d7ff3e"}
+                    />
+                  );
+                })}
+              </ul>
+            </Panel>
           )}
-        </Panel>
+
+          {history.length > 0 && (
+            <Panel title={`History (${history.length})`}>
+              <ul className="divide-y divide-line">
+                {history.slice(0, 12).map((post) => {
+                  const business = post.business_id ? byId.get(post.business_id) : undefined;
+                  return (
+                    <PostCard
+                      key={post.id}
+                      post={post}
+                      businessName={business?.name ?? "—"}
+                      colour={business?.colour ?? "#d7ff3e"}
+                    />
+                  );
+                })}
+              </ul>
+            </Panel>
+          )}
+
+          <Panel title={`Task drafts (${posts.length})`} meta={<span className="font-mono text-[10px] text-white/30">not yet structured</span>}>
+            {posts.length === 0 ? (
+              <Empty text="Nothing yet." />
+            ) : (
+              <ul className="divide-y divide-line">
+                {posts.slice(0, 6).map((post) => (
+                  <li key={post.id} className="flex items-start justify-between gap-3 px-5 py-3">
+                    <p className="truncate text-xs text-white/60">{post.title}</p>
+                    <StatusPill status={post.status} />
+                  </li>
+                ))}
+              </ul>
+            )}
+          </Panel>
+        </div>
 
         <div className="space-y-5">
           <SocialComposer businesses={businesses} />

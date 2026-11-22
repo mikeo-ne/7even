@@ -121,15 +121,15 @@ export const CHANNELS: BusinessChannels[] = [
     artists: [
       ig("@_baranga._", "owner-confirmed", {
         artist: "Baranga",
-        writeFor: "amplify",
-        note: "His account, his voice. The agent plans the label's response to it — tag, repost, quote, credit — and never writes copy for Baranga to post.",
+        writeFor: "label",
+        note: "Managed. The agent writes his captions and builds his calendar; the label publishes after approval. Copy is in Baranga's voice, never the label's, and never claims a release date or feature that is not confirmed.",
       }),
       tt("@_baranga", "confirmed", {
         artist: "Baranga",
-        writeFor: "amplify",
-        note: "Posts consistently and already uses #7hmusicgroup in his own captions. The strongest reach on the roster by a distance. Amplify only.",
+        writeFor: "label",
+        note: "The strongest reach on the roster by a distance, and already uses #7hmusicgroup in his own captions. Managed: captions written for him, published by the label after approval.",
       }),
-      yt("@baranga_music", "unchecked", { artist: "Baranga", writeFor: "amplify" }),
+      yt("@baranga_music", "unchecked", { artist: "Baranga", writeFor: "label" }),
       ig("@mike.1ne_", "owner-confirmed", {
         artist: "Mike 1ne",
         owner: true,
@@ -162,9 +162,9 @@ export const CHANNELS: BusinessChannels[] = [
       },
     ],
     voice:
-      "Artist-first, confident, never corporate. Short sentences. Name the artist, the record and the platform. Ugandan English, no borrowed American slang. Two voices now: label posts (third person, '7H') and Mike 1ne's own accounts (first person, 'I' — he is the owner and the producer, so he writes as himself, not as the label).",
+      "Three voices, and confusing them is the main risk. Label posts: third person, '7H', artist-first, never corporate. Baranga's accounts: first person, his own register — Kampala slang, short lines, confident, no label language, no corporate cadence. Mike 1ne's accounts: first person as the producer, talking craft to other producers. Ugandan English throughout; no borrowed American slang. Never write the label's phrasing into an artist's mouth.",
     gaps:
-      "Work with Instagram, X, YouTube and SoundCloud for the label, and Instagram and TikTok for Baranga and Mike 1ne. The label X account has never posted. The label has no TikTok yet: until it does, TikTok is artist-led, and Baranga's account is where the reach already is. Mike 1ne's accounts belong to the owner personally: drafts for them are first person and still need approval, because posting as the owner is not the same as posting as the label.",
+      "Work with Instagram, X, YouTube and SoundCloud for the label, and Instagram and TikTok for Baranga and Mike 1ne. The label X account has never posted. The label has no TikTok yet, so TikTok reach runs through Baranga's account, which the agent now manages as well. Baranga's copy is written in his voice but published by the label, so it needs his comfort as much as the owner's: keep it in his register, never in the label's. Mike 1ne's accounts are the owner's own and are first person.",
   },
   {
     slug: "7h-music-blog",
@@ -268,8 +268,10 @@ export const SOCIAL_RULES = `## Social rules
  */
 export const AMPLIFY_RULES = `## Artist accounts are theirs, not ours
 
-Some roster accounts are marked "amplify". For those, you never write copy for the
-artist to post. You write what the *label* does about their post:
+Some roster accounts may be marked "amplify" — at present none of the active ones
+are, because the owner has taken management of the roster. If an account is marked
+that way, you never write copy for the artist to post. You write what the *label*
+does about their post:
 
 - **Plan the response, not the post.** Given what the artist put out, produce the label's quote post, repost comment, story share or tag — in the label's voice.
 - **Never write "I" for an artist.** No drafted captions, no ghost-written first person, no "post this on your page". If the output would be pasted by the artist as their own words, it is the wrong output.

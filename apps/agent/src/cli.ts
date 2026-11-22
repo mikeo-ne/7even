@@ -11,6 +11,7 @@ import { describeBrain } from "./brain.js";
 import { startServer } from "./server.js";
 import { startScheduler } from "./scheduler.js";
 import { runTask } from "./runner.js";
+import { publishDue } from "./publisher.js";
 import { fetchCard, refreshPeers } from "./peers.js";
 
 const VERSION = "0.1.0";
@@ -145,7 +146,18 @@ async function start() {
     })();
   }, config.pollMs);
 
+  // The publish loop. Separate from the work loop because a slow platform must
+  // never block a task, and because publishing is the one action that touches
+  // the outside world.
+  const publish = setInterval(() => {
+    if (!config.social.publishEnabled) return;
+    void publishDue(store, config).then((count) => {
+      if (count > 0) log(`  ↗ published ${count} post(s)`);
+    });
+  }, 30_000);
+
   const shutdown = async () => {
+    clearInterval(publish);
     clearInterval(loop);
     clearInterval(beat);
     clearInterval(peers);

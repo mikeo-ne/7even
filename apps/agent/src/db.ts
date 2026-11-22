@@ -1,5 +1,5 @@
 import { createClient, type SupabaseClient } from "@supabase/supabase-js";
-import type { Approval, Business, Task, TaskEventKind, TaskStatus } from "@7even/core";
+import type { Approval, Business, Post, Task, TaskEventKind, TaskStatus } from "@7even/core";
 
 export type Db = {
   client: SupabaseClient;
@@ -210,6 +210,69 @@ export class AgentStore {
     if (error) return null;
     await this.event(input.taskId, "approval", input.action);
     return data as Approval;
+  }
+
+  /** Save a validated draft and park it for a human decision. */
+  async createPost(input: {
+    ownerId: string;
+    businessId: string | null;
+    taskId: string | null;
+    approvalId: string | null;
+    draft: import("@7even/core").PostDraft;
+  }): Promise<Post | null> {
+    const { draft } = input;
+    const { data, error } = await this.db.client
+      .from("posts")
+      .insert({
+        owner_id: input.ownerId,
+        business_id: input.businessId,
+        task_id: input.taskId,
+        approval_id: input.approvalId,
+        platform: draft.platform,
+        account_handle: draft.account_handle,
+        account_role: draft.account_role,
+        format: draft.format,
+        caption: draft.caption,
+        alt_text: draft.alt_text ?? null,
+        hashtags: draft.hashtags ?? [],
+        link: draft.link ?? null,
+        media_urls: draft.media_urls ?? [],
+        scheduled_for: draft.scheduled_for ?? null,
+        status: "pending_approval",
+      })
+      .select("*")
+      .single();
+
+    if (error) return null;
+    return data as Post;
+  }
+
+  /** Posts that have been approved and are due. The publisher's work queue. */
+  async duePosts(limit = 5): Promise<Post[]> {
+    const { data } = await this.db.client
+      .from("posts")
+      .select("*")
+      .eq("status", "approved")
+      .or(`scheduled_for.is.null,scheduled_for.lte.${new Date().toISOString()}`)
+      .order("scheduled_for", { ascending: true, nullsFirst: true })
+      .limit(limit);
+    return (data as Post[]) ?? [];
+  }
+
+  async setPostStatus(
+    id: string,
+    status: Post["status"],
+    patch: { externalId?: string; error?: string; publishedAt?: string } = {},
+  ): Promise<void> {
+    await this.db.client
+      .from("posts")
+      .update({
+        status,
+        ...(patch.externalId ? { external_id: patch.externalId } : {}),
+        ...(patch.error ? { error: patch.error.slice(0, 2000) } : {}),
+        ...(patch.publishedAt ? { published_at: patch.publishedAt } : {}),
+      })
+      .eq("id", id);
   }
 
   async getTask(id: string): Promise<Task | null> {

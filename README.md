@@ -140,6 +140,20 @@ task, so context does not have to be repeated.
 - `task_events` carries `owner_id` so the live log is readable without recursive policies.
 - Realtime is enabled on `task_events`, `tasks`, `approvals`, `agents` for the live view.
 
+### The businesses it runs
+
+Seeded from the live sites by `supabase/seed-businesses.sql` (re-runnable):
+
+| Business | Site | The agent's job |
+| --- | --- | --- |
+| **7H Music Group** | `7hmusicgroupug.vercel.app` | label ops: demo replies inside the 14-day promise, release checklists, splits and UPRS registration, royalty follow-up |
+| **7H Music Blog** | `7h-music-blog.vercel.app` | editorial: 2–3 sourced stories a week across the Uganda and Kenya desks, nothing published without a source |
+| **East Sound Technologies** | `eastsound.vercel.app` | monitoring health, the URSB/UPRS/UCC pilot pipeline, evidence packs, chart integrity |
+
+Each row carries a `brief` (what the business is, its roster, its contacts) and
+`instructions` (how it wants to be run), both of which are prepended to every prompt.
+Edit them in the control room under **Businesses → edit profile**; no deploy needed.
+
 ---
 
 ## Repo layout

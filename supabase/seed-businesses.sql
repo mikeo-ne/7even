@@ -9,6 +9,11 @@
 --   7H MUSIC BLOG           https://7h-music-blog.vercel.app
 --   EAST SOUND TECHNOLOGIES https://eastsound.vercel.app
 --
+-- `brief` is what the business is; `instructions` is how it wants to be run.
+-- The bridge prepends both to every prompt for that business, so they are
+-- written as prose rather than markdown: they are read as a prompt, not
+-- rendered, and one dense paragraph keeps the token cost down.
+--
 -- Safe to re-run: businesses upsert on (owner_id, slug), and a business's
 -- schedules are deleted and recreated each time.
 

@@ -131,7 +131,7 @@ export default async function SocialPage() {
 
                     {brand.length === 0 ? (
                       <p className="mt-1.5 text-[11px] text-amber-300/80">
-                        No accounts. Drafts are for you to place.
+                        No accounts on any platform yet.
                       </p>
                     ) : (
                       <ul className="mt-1.5 space-y-1">
@@ -141,7 +141,7 @@ export default async function SocialPage() {
                               <span className="font-mono text-[10px] text-white/25 line-through">
                                 {account.platform} {account.handle}
                               </span>
-                            ) : (
+                            ) : account.url ? (
                               <a
                                 href={account.url}
                                 target="_blank"
@@ -150,15 +150,24 @@ export default async function SocialPage() {
                               >
                                 {account.platform} {account.handle}
                               </a>
+                            ) : (
+                              <span className="font-mono text-[10px] text-signal/70">
+                                {account.platform} {account.handle}
+                              </span>
                             )}
                             {account.state === "empty" && (
                               <span className="ml-1.5 rounded bg-amber-400/10 px-1 py-0.5 text-[9px] text-amber-300">
                                 never posted
                               </span>
                             )}
-                            {account.state === "login-walled" && (
+                            {account.state === "owner-confirmed" && (
                               <span className="ml-1.5 rounded bg-white/5 px-1 py-0.5 text-[9px] text-white/35">
-                                unverified
+                                from you
+                              </span>
+                            )}
+                            {account.state === "available" && (
+                              <span className="ml-1.5 rounded bg-signal/10 px-1 py-0.5 text-[9px] text-signal">
+                                free — register
                               </span>
                             )}
                           </li>

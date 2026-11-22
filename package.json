@@ -15,7 +15,8 @@
     "build": "npm run build --workspace @7even/core && npm run build --workspace @7even/agent && npm run build --workspace @7even/web",
     "dev:agent": "npm run dev --workspace @7even/agent",
     "dev:web": "npm run dev --workspace @7even/web",
-    "typecheck": "npm run typecheck --workspaces --if-present"
+    "typecheck": "npm run typecheck --workspaces --if-present",
+    "channels:setup": "npm run build --workspace @7even/core && node scripts/channel-setup.mjs"
   },
   "license": "UNLICENSED"
 }

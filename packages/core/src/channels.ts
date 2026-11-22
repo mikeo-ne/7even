@@ -4,8 +4,10 @@
  * Every entry below was opened and checked on 2026-11-22, not inferred from a
  * link in a footer. `confirmed` means the profile page rendered with a name and
  * content. `empty` means the account exists but has never posted. `missing`
- * means the handle does not resolve. `login-walled` means the platform refuses
- * logged-out requests, so the handle is published by the business but unproven.
+ * means the handle does not resolve. `owner-confirmed` means the owner supplied
+ * the handle and the platform refuses logged-out requests, so it is true because
+ * they say so rather than because it was verified. `available` means the handle
+ * is free and needs registering by a human.
  *
  * The business sites are the source for handles; this file is the source for
  * what 7even is allowed to plan against. It is written into each business
@@ -14,7 +16,13 @@
 
 export type Platform = "Instagram" | "TikTok" | "X" | "YouTube" | "SoundCloud" | "Facebook";
 
-export type AccountState = "confirmed" | "empty" | "missing" | "login-walled" | "unchecked";
+export type AccountState =
+  | "confirmed" // opened it, name and posts rendered
+  | "empty" // exists, has never posted
+  | "owner-confirmed" // the owner supplied it; the platform blocks logged-out checks
+  | "available" // the handle is free and should be registered
+  | "missing" // does not resolve
+  | "unchecked";
 
 export type Account = {
   platform: Platform;
@@ -61,6 +69,14 @@ const x = (handle: string, state: AccountState, note?: string): Account => ({
   note,
 });
 
+const none = (platform: Platform, suggested: string, note: string): Account => ({
+  platform,
+  handle: suggested,
+  url: "",
+  state: "available",
+  note: `${note} Suggested handle: ${suggested}.`,
+});
+
 const yt = (handle: string, state: AccountState, artist?: string): Account => ({
   platform: "YouTube",
   handle,
@@ -73,8 +89,8 @@ export const CHANNELS: BusinessChannels[] = [
   {
     slug: "7h-music-group",
     brand: [
-      ig("@7hmusicgroup", "login-walled"),
-      tt("@7hmusicgroup", "missing", undefined, "Handle does not resolve on TikTok."),
+      ig("@7hmusicgroup", "owner-confirmed"),
+      none("TikTok", "@7hmusicgroup", "Checked: no label TikTok exists. The same handle is taken on Instagram and X, so register it here before anyone else does."),
       x("@7hmusicgroup", "empty", "Joined Oct 2026. 0 posts, 0 followers, 2 following."),
       yt("@7hmusicgroup", "unchecked"),
       {
@@ -85,13 +101,13 @@ export const CHANNELS: BusinessChannels[] = [
       },
     ],
     artists: [
-      ig("@_baranga._", "login-walled", "Baranga"),
+      ig("@_baranga._", "owner-confirmed", "Baranga"),
       tt("@_baranga", "confirmed", "Baranga", "Posts under 7hmusicgroup hashtags; the most active account on the roster."),
       yt("@baranga_music", "unchecked", "Baranga"),
-      ig("@mr_fallback01", "login-walled", "Mr Fallback"),
+      ig("@mr_fallback01", "owner-confirmed", "Mr Fallback"),
       tt("@mrfallback6", "confirmed", "Mr Fallback", "Name shown: Mrfalllback. Active, frequently tags 2PUFF Records."),
       yt("@mrfallback01", "unchecked", "Mr Fallback"),
-      ig("@mike.1ne_", "login-walled", "Mike 1ne"),
+      ig("@mike.1ne_", "owner-confirmed", "Mike 1ne"),
       tt("@mike.1ne_", "confirmed", "Mike 1ne", "Producer-led: sessions, beat breakdowns, music business."),
       tt("@smokie_ceee", "confirmed", "Smokie Cee", "1,405 followers, 6,732 likes. No Instagram published."),
       yt("@smokie_cee", "unchecked", "Smokie Cee"),
@@ -99,33 +115,37 @@ export const CHANNELS: BusinessChannels[] = [
     voice:
       "Artist-first, confident, never corporate. Short sentences. Name the artist, the record and the platform. Capitalise the roster properly: Baranga, Mr Fallback, Mike 1ne, Smokie Cee. Ugandan English, no borrowed American slang.",
     gaps:
-      "The label X account exists but has never posted: treat every draft as a first impression, and do not schedule a thread until one standalone post has worked. There is no label TikTok, and the label Instagram is the only brand account with history. TikTok reach on this roster lives on the artists' own accounts (Baranga and Mr Fallback are the strongest), so plan TikTok as artist-led and Instagram as label-led. Mr Fallback's TikTok repeatedly credits 2PUFF Records: confirm the current label relationship before any post that claims him.",
+      "Instagram is the label's only account with a history. The X account exists but has never posted, so treat the first post as a first impression and do not open with a thread. No label TikTok exists yet: until one is registered, plan TikTok on the artists' own accounts, where the reach already is (Baranga and Mr Fallback are strongest). Mr Fallback's TikTok repeatedly credits 2PUFF Records, so confirm the current label relationship before any post that claims him.",
   },
   {
     slug: "7h-music-blog",
     brand: [
-      ig("@7hmusicgroup", "login-walled", "Shared with the label, not a separate blog account."),
-      x("@7hmusicgroup", "empty", "Shared with the label. 0 posts."),
-      yt("@7hmusicgroup", "unchecked", "Shared with the label."),
+      ig("@7hmusic.blog", "owner-confirmed", "Its own account — the blog no longer borrows the label's."),
+      none("X", "@7hmusicblog", "Checked: the handle is free on X."),
+      none("TikTok", "@7hmusic.blog", "Checked: free, and it matches the Instagram handle."),
     ],
     artists: [
-      ig("@_baranga._", "login-walled", "Baranga"),
-      ig("@mr_fallback01", "login-walled", "Mr Fallback"),
-      ig("@mike.1ne_", "login-walled", "Mike 1ne"),
+      ig("@_baranga._", "owner-confirmed", "Baranga"),
+      ig("@mr_fallback01", "owner-confirmed", "Mr Fallback"),
+      ig("@mike.1ne_", "owner-confirmed", "Mike 1ne"),
     ],
     voice:
       "Editorial, not promotional. Lead with the story, not the brand. Link the article. On X, the headline plus one line of why it matters. Never announce a story with 'New blog post'.",
     gaps:
-      "The blog has no accounts of its own — it borrows the label's Instagram and X. That is a conflict: the blog promises editorial independence while posting from the label's handle. Until a separate blog account exists, keep blog posts visibly bylined (7H Music Blog) and never let a label promo and a blog story appear in the same thread. Do not create accounts; ask the owner.",
+      "The blog now has its own Instagram (@7hmusic.blog), which settles the independence problem: post blog stories only from that account, never from the label's. X and TikTok are not registered yet, so hold those posts until they are, and keep every post visibly bylined 7H Music Blog.",
   },
   {
     slug: "east-sound",
-    brand: [],
+    brand: [
+      ig("@eas_tsound", "owner-confirmed"),
+      x("@EastSoundTech", "empty", "Joined Nov 2026. 0 posts, 1 follower. The bio claims 26 stations monitored live — confirm that figure before repeating it anywhere."),
+      none("TikTok", "@eastsoundtech", "Checked: free. @eas_tsound is also free if you want the TikTok to match Instagram."),
+    ],
     artists: [],
     voice:
       "Precise, factual, unexcited. Numbers with units, dates in full. Say 'detected play', never 'proven royalty'. No regulator, broadcaster or CMO is ever named as a partner until an agreement exists in writing.",
     gaps:
-      "East Sound has no social accounts at all: no Instagram, TikTok or X handle was found on the site or anywhere else. Do not invent one and do not post from the label's account under an East Sound name. Draft copy into the workspace and label it 'for owner to place'. East Sound sells to broadcasters, regulators and labels, so its reach channel is email and the partner page, not Instagram.",
+      "East Sound has Instagram (@eas_tsound) and X (@EastSoundTech); neither has ever posted and there is no TikTok yet. Its X bio claims 26 radio stations monitored live and says the company is powered by 7H Music Group: the station count must be true and kept current, and the agent must never publish a figure it has not re-checked. This audience is broadcasters, regulators and labels, so X and LinkedIn carry the message and Instagram carries the evidence — charts, clips, coverage maps. Keep the label's voice out of it: share the parentage, do not sound like a record label.",
   },
 ];
 
@@ -176,7 +196,8 @@ export const CADENCE_RULES = `## Cadence
 const STATE_LABEL: Record<AccountState, string> = {
   confirmed: "verified — posts present",
   empty: "exists but has never posted",
-  "login-walled": "published by the business; Instagram hides it from logged-out checks",
+  "owner-confirmed": "supplied by the owner; Instagram hides it from logged-out checks",
+  available: "FREE — register this handle",
   missing: "does not resolve — do not use",
   unchecked: "linked from the site, not opened",
 };

@@ -1,9 +1,9 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
-import { BarChart3, Disc3, LogOut, Users, Wallet } from "lucide-react";
+import { BarChart3, Disc3, Users, Wallet } from "lucide-react";
 import { createClient } from "@/lib/supabase/server";
-import { signOut } from "@/app/login/actions";
 import { NavLink } from "./NavLink";
+import { SignOutButton } from "./SignOutButton";
 
 const nav = [
   { href: "/dashboard", label: "Overview", icon: BarChart3 },
@@ -65,15 +65,7 @@ export default async function DashboardLayout({ children }: { children: React.Re
             </span>
             <span className="truncate text-xs text-mute">{user.email}</span>
           </div>
-          <form action={signOut}>
-            <button
-              type="submit"
-              title="Sign out"
-              className="grid size-8 place-items-center rounded-lg text-mute transition hover:bg-white/5 hover:text-white"
-            >
-              <LogOut className="size-4" />
-            </button>
-          </form>
+          <SignOutButton />
         </div>
       </aside>
 

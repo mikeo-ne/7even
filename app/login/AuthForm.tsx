@@ -1,14 +1,71 @@
 "use client";
 
-import { useActionState, useState } from "react";
-import { ArrowLeft, Loader2 } from "lucide-react";
+import { useState } from "react";
+import { useRouter } from "next/navigation";
 import Link from "next/link";
-import { signIn, signUp, type AuthState } from "./actions";
+import { ArrowLeft, Loader2 } from "lucide-react";
+import { createClient } from "@/lib/supabase/client";
 
 export function AuthForm() {
+  const router = useRouter();
+  const supabase = createClient();
+
   const [mode, setMode] = useState<"signin" | "signup">("signup");
-  const action = mode === "signin" ? signIn : signUp;
-  const [state, formAction, pending] = useActionState<AuthState, FormData>(action, undefined);
+  const [pending, setPending] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [notice, setNotice] = useState<string | null>(null);
+
+  async function onSubmit(event: React.FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    setError(null);
+    setNotice(null);
+    setPending(true);
+
+    const form = new FormData(event.currentTarget);
+    const email = String(form.get("email") ?? "").trim();
+    const password = String(form.get("password") ?? "");
+    const fullName = String(form.get("full_name") ?? "").trim();
+
+    if (mode === "signup") {
+      if (password.length < 8) {
+        setError("Use at least 8 characters for your password.");
+        setPending(false);
+        return;
+      }
+      if (!fullName) {
+        setError("Tell us your name or your label name.");
+        setPending(false);
+        return;
+      }
+      const { data, error: signUpError } = await supabase.auth.signUp({
+        email,
+        password,
+        options: { data: { full_name: fullName } },
+      });
+
+      if (signUpError) {
+        setError(signUpError.message);
+        setPending(false);
+        return;
+      }
+      if (!data.session) {
+        setNotice("Check your inbox to confirm your email, then sign in.");
+        setPending(false);
+        setMode("signin");
+        return;
+      }
+    } else {
+      const { error: signInError } = await supabase.auth.signInWithPassword({ email, password });
+      if (signInError) {
+        setError(signInError.message);
+        setPending(false);
+        return;
+      }
+    }
+
+    router.replace("/dashboard");
+    router.refresh();
+  }
 
   return (
     <div className="w-full max-w-sm">
@@ -29,7 +86,7 @@ export function AuthForm() {
           : "Free to start. Your label workspace is created automatically."}
       </p>
 
-      <form action={formAction} className="mt-8 space-y-4">
+      <form onSubmit={onSubmit} className="mt-8 space-y-4">
         {mode === "signup" && (
           <Field label="Name or label name">
             <input
@@ -62,15 +119,14 @@ export function AuthForm() {
           />
         </Field>
 
-        {state?.error && (
-          <p
-            className={`rounded-lg border px-3 py-2.5 text-xs leading-relaxed ${
-              state.ok
-                ? "border-lime/30 bg-lime/10 text-lime"
-                : "border-rose-500/30 bg-rose-500/10 text-rose-300"
-            }`}
-          >
-            {state.error}
+        {error && (
+          <p className="rounded-lg border border-rose-500/30 bg-rose-500/10 px-3 py-2.5 text-xs leading-relaxed text-rose-300">
+            {error}
+          </p>
+        )}
+        {notice && (
+          <p className="rounded-lg border border-lime/30 bg-lime/10 px-3 py-2.5 text-xs leading-relaxed text-lime">
+            {notice}
           </p>
         )}
 
@@ -88,7 +144,11 @@ export function AuthForm() {
         {mode === "signin" ? "New to 7even?" : "Already have an account?"}{" "}
         <button
           type="button"
-          onClick={() => setMode(mode === "signin" ? "signup" : "signin")}
+          onClick={() => {
+            setMode(mode === "signin" ? "signup" : "signin");
+            setError(null);
+            setNotice(null);
+          }}
           className="font-medium text-lime transition hover:text-lime-dim"
         >
           {mode === "signin" ? "Create one" : "Sign in"}

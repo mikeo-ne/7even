@@ -39,6 +39,11 @@ function AccountLine({ account }: { account: Account }) {
         {account.platform} {account.handle}
         {account.owner ? " (yours)" : ""}
       </span>
+      {account.writeFor === "amplify" && (
+        <span className="ml-1.5 rounded bg-sky-400/10 px-1 py-0.5 text-[9px] text-sky-300">
+          amplify only
+        </span>
+      )}
       {badge && (
         <span className={`ml-1.5 rounded px-1 py-0.5 text-[9px] ${badge.className}`}>
           {badge.label}
@@ -238,6 +243,40 @@ export default async function SocialPage() {
               </p>
             </li>
           ))}
+        </ul>
+      </Panel>
+
+      <Panel title="How the agent treats each account">
+        <ul className="divide-y divide-line">
+          <li className="px-5 py-3.5">
+            <p className="text-xs font-medium text-white/80">Label accounts — the agent writes them</p>
+            <p className="mt-1 text-[11px] leading-relaxed text-mute">
+              Full drafts in the label&apos;s third-person voice, queued for your approval. This is
+              where most of the work happens.
+            </p>
+          </li>
+          <li className="px-5 py-3.5">
+            <p className="text-xs font-medium text-white/80">
+              <span className="mr-1.5 rounded bg-sky-400/10 px-1 py-0.5 text-[9px] text-sky-300">
+                amplify only
+              </span>
+              Baranga — his voice stays his
+            </p>
+            <p className="mt-1 text-[11px] leading-relaxed text-mute">
+              The agent never writes copy for him to post. It plans what the <em>label</em> does
+              about his posts: quote, repost, Story share, or the label&apos;s own post pointing at
+              him. No ghost-writing, no duets, no stitch bait.
+            </p>
+          </li>
+          <li className="px-5 py-3.5">
+            <p className="text-xs font-medium text-white/80">
+              Mike 1ne — written first person, because it is you
+            </p>
+            <p className="mt-1 text-[11px] leading-relaxed text-mute">
+              Drafts say &ldquo;I&rdquo;, as the producer talking to other producers. They still need
+              your approval, because posting as you is not the same as posting as the label.
+            </p>
+          </li>
         </ul>
       </Panel>
 

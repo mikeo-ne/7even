@@ -35,6 +35,13 @@ export type Account = {
   artist?: string;
   /** True when this account belongs to the owner personally. */
   owner?: boolean;
+  /**
+   * Who the agent may draft for. `label` means full draft-and-publish copy.
+   * `amplify` means the agent may only plan the label's response to this
+   * account — who to tag, what to repost, what to quote — never copy written in
+   * the artist's own voice. Their account stays theirs.
+   */
+  writeFor?: "label" | "amplify";
   note?: string;
 };
 
@@ -112,17 +119,28 @@ export const CHANNELS: BusinessChannels[] = [
       }),
     ],
     artists: [
-      ig("@_baranga._", "owner-confirmed", { artist: "Baranga" }),
+      ig("@_baranga._", "owner-confirmed", {
+        artist: "Baranga",
+        writeFor: "amplify",
+        note: "His account, his voice. The agent plans the label's response to it — tag, repost, quote, credit — and never writes copy for Baranga to post.",
+      }),
       tt("@_baranga", "confirmed", {
         artist: "Baranga",
-        note: "Posts consistently and already uses #7hmusicgroup in his own captions. The strongest reach on the roster by a distance.",
+        writeFor: "amplify",
+        note: "Posts consistently and already uses #7hmusicgroup in his own captions. The strongest reach on the roster by a distance. Amplify only.",
       }),
-      yt("@baranga_music", "unchecked", { artist: "Baranga" }),
-      ig("@mike.1ne_", "owner-confirmed", { artist: "Mike 1ne", owner: true }),
+      yt("@baranga_music", "unchecked", { artist: "Baranga", writeFor: "amplify" }),
+      ig("@mike.1ne_", "owner-confirmed", {
+        artist: "Mike 1ne",
+        owner: true,
+        writeFor: "label",
+        note: "The owner's own account. Drafts are first person, as Mike, and still need approval before anything goes out.",
+      }),
       tt("@mike.1ne_", "confirmed", {
         artist: "Mike 1ne",
         owner: true,
-        note: "Producer-led: studio sessions, beat breakdowns, mixing technique, sync licensing. Talks to other producers, not to fans.",
+        writeFor: "label",
+        note: "Producer-led: studio sessions, beat breakdowns, mixing technique, sync licensing. Talks to other producers, not to fans. First person.",
       }),
     ],
     paused: [
@@ -164,8 +182,8 @@ export const CHANNELS: BusinessChannels[] = [
       }),
     ],
     artists: [
-      ig("@_baranga._", "owner-confirmed", { artist: "Baranga" }),
-      ig("@mike.1ne_", "owner-confirmed", { artist: "Mike 1ne", owner: true }),
+      ig("@_baranga._", "owner-confirmed", { artist: "Baranga", writeFor: "amplify" }),
+      ig("@mike.1ne_", "owner-confirmed", { artist: "Mike 1ne", owner: true, writeFor: "label" }),
     ],
     paused: [
       {
@@ -241,14 +259,34 @@ export const SOCIAL_RULES = `## Social rules
 - Reach is not the goal; the right 500 people are worth more than the wrong 50,000.
 - When a post underperforms, report it with the numbers and a hypothesis. Do not quietly rebrand it as a "test".
 - Never tag an artist, brand or station without confirming the relationship is current.
-- Respect the paused list. If a person is paused, they do not appear in a post, a tag, a plan or a thread.`;
+- Respect the paused list. If a person is paused, they do not appear in a post, a tag, a plan or a thread.
+- If an account is marked "amplify", you never draft words for that person to publish as their own. See the amplification section.`;
+
+/**
+ * The rule that keeps artist accounts the artist's. The agent writes the label's
+ * side of the relationship and never puts words in an artist's mouth.
+ */
+export const AMPLIFY_RULES = `## Artist accounts are theirs, not ours
+
+Some roster accounts are marked "amplify". For those, you never write copy for the
+artist to post. You write what the *label* does about their post:
+
+- **Plan the response, not the post.** Given what the artist put out, produce the label's quote post, repost comment, story share or tag — in the label's voice.
+- **Never write "I" for an artist.** No drafted captions, no ghost-written first person, no "post this on your page". If the output would be pasted by the artist as their own words, it is the wrong output.
+- **Credit them, do not absorb them.** The label account names the artist and links them. It does not repost uncredited, and it does not crop a watermark.
+- **Amplification is not reposting everything.** Pick what is actually good. A label account that shares every story teaches people to scroll past it.
+- **Never tag them into a post they would not want.** If a post is about a fee, a dispute, a mistake or anything unresolved, it does not tag the artist.
+- **Duets and stitches count as writing for them.** Do not plan a duet, a stitch, a stitch-bait hook or a trend the artist would have to perform.
+
+The owner's own accounts (marked as yours) are the exception: those are written in the
+first person because they are the owner speaking, and they still need approval.`;
 
 export const CADENCE_RULES = `## Cadence
 
 - Plan in weekly blocks, published every Monday morning for the week ahead.
 - Per active artist: 3-5 posts a week while a release is live, 1-2 a week otherwise.
 - A release gets a defined arc: announce, tease, drop, proof (first plays/screenshots), thank-you, then catalogue.
-- TikTok is artist-led: Baranga's account carries the reach, Mike 1ne's carries the craft. Do not mirror the same cut to both.
+- TikTok is artist-led: Baranga's account carries the reach, Mike 1ne's carries the craft. Do not mirror the same cut to both, and do not write Baranga's copy — amplify it.
 - Instagram is label-led. X is where the label introduces itself properly for the first time.
 - Blog: each published story yields one post on its own Instagram, and, if it concerns Baranga or Mike 1ne, a distinct post from a different angle.
 - East Sound: X for the argument, Instagram for the evidence. No TikTok yet.`;
@@ -267,8 +305,9 @@ function accountLines(accounts: Account[]): string {
   return accounts
     .map((account) => {
       const who = account.artist ? `${account.artist}: ` : "";
-      const owner = account.owner ? " (owner's own account)" : "";
-      const head = `- ${who}**${account.platform}** ${account.handle}${owner} — ${STATE_LABEL[account.state]}`;
+      const owner = account.owner ? " (owner's own account — first person)" : "";
+      const writeFor = account.writeFor === "amplify" ? " (AMPLIFY ONLY — do not write their copy)" : "";
+      const head = `- ${who}**${account.platform}** ${account.handle}${owner}${writeFor} — ${STATE_LABEL[account.state]}`;
       const note = account.note ? `\n  ${account.note}` : "";
       const url = account.url ? `\n  ${account.url}` : "";
       return `${head}${note}${url}`;
@@ -324,6 +363,8 @@ ${profile?.gaps ?? "No channel notes. Ask the owner before posting anything."}
 ${profile?.voice ?? "Match the voice of the business brief. Short sentences, concrete nouns, no hype words."}
 
 ${SOCIAL_RULES}
+
+${AMPLIFY_RULES}
 
 ${CADENCE_RULES}
 

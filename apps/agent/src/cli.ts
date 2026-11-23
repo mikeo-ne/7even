@@ -398,8 +398,9 @@ function help() {
 
   Publishing (all optional; a missing token says so instead of failing quietly)
     SEVEN_PUBLISH=1                            allow approved posts to be sent
-    SEVEN_INSTAGRAM_TOKEN / _ACCOUNT_ID        Instagram Login path by default
-    SEVEN_INSTAGRAM_HOST                       graph.instagram.com or the Graph host
+    SEVEN_INSTAGRAM_TOKEN                      token from the Meta app dashboard
+    SEVEN_INSTAGRAM_ACCOUNT_ID                 IG user id (Graph path only)
+    SEVEN_INSTAGRAM_API=instagram|facebook     which Instagram API issued the token
     SEVEN_FACEBOOK_TOKEN / _ACCOUNT_ID         Page token and Page id
     SEVEN_LINKEDIN_TOKEN / _ACCOUNT_ID         token and urn:li:organization:<id>
     SEVEN_TIKTOK_TOKEN                         video only; unaudited apps post privately

@@ -105,8 +105,15 @@ export async function loadConfig(): Promise<Config> {
       };
     }
   }
-  // Instagram has two API hosts and the token only works on the one that issued
-  // it. Default is the Graph host, so an existing Page token keeps working.
+  // Instagram has two APIs and the token only works on the one that issued it.
+  // Default is the Graph host, so an existing Page token keeps working.
+  const igApi = env.SEVEN_INSTAGRAM_API;
+  if (igApi === "instagram" || igApi === "facebook") {
+    config.social.tokens.instagram = {
+      ...(config.social.tokens.instagram ?? { accessToken: "" }),
+      extra: { ...(config.social.tokens.instagram?.extra ?? {}), api: igApi },
+    };
+  }
   const igHost = env.SEVEN_INSTAGRAM_HOST;
   if (igHost) {
     config.social.tokens.instagram = {

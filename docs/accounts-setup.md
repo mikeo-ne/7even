@@ -41,12 +41,19 @@ Two paths reach Instagram with the same published result. Pick one and stay on
 it, because the token only works on the host that issued it:
 
 - **Instagram Login** — `graph.instagram.com`, scopes `instagram_business_basic`
-  and `instagram_business_content_publish`, no Facebook Page required.
+  and `instagram_business_content_publish`, no Facebook Page required. Posts
+  address the author as `me`, because the token *is* the account.
 - **Facebook Login** — `graph.facebook.com`, scopes `instagram_basic` and
-  `instagram_content_publish`, IG account must be linked to a Page.
+  `instagram_content_publish`, IG account must be linked to a Page. Posts address
+  the IG user id.
 
-In the bridge, `SEVEN_INSTAGRAM_HOST` picks the host. Leave it unset and the
-adapter assumes the Graph host, so an existing Page token keeps working.
+They are not the same API wearing two URLs: the paths and the identity differ, and
+the token only works on the one that issued it. Sending an Instagram Login token
+to the Graph host fails in a way that looks like a permissions bug.
+
+In the bridge, `SEVEN_INSTAGRAM_API=instagram|facebook` picks the path. Leave it
+unset and the adapter uses the Graph path, so an existing Page token keeps
+working untouched.
 
 ---
 
@@ -59,25 +66,35 @@ turns out not to exist is how a week of content gets written for an account
 nobody can post to.
 
 Present today: the two Facebook Pages, `@_baranga` and `@mike.1ne_` on TikTok,
-`@_baranga` on Instagram, `@7hmusicgroup` and `@EastSoundTech` on X.
+`@_baranga`, `@mike.1ne_` and `@7hmusic.blog` on Instagram, `@7hmusicgroup` and
+`@EastSoundTech` on X.
 
-Not yet real: a label Instagram, a label TikTok, a YouTube channel, LinkedIn
-Pages, an East Sound Instagram. Mike 1ne's Instagram handle is **unconfirmed** —
-the TikTok handle ends in an underscore, so do not assume the same for Instagram.
+That is five Instagram accounts' worth of reach in two categories — label, artist
+and editorial — and it means **three of the four accounts that can publish free
+already exist**. What is missing is configuration, not registration.
+
+Not yet real: a label Instagram and TikTok, a YouTube channel, LinkedIn Pages, an
+East Sound Instagram, the blog's TikTok and X. Two handles are still unverified:
+Baranga's Instagram (`@_baranga._` or `@_baranga`), and whether 7H Music Group is
+its own Page or a section of the Mike 1ne Page.
 
 ---
 
 ## Do this, in this order
 
-### 1. Attach Instagram to the Page (15 minutes)
+### 1. Attach the Instagram accounts to the Page (15 minutes)
 
 - Instagram app → Settings → Account type → **Business**
 - Link it to the **7H Music Group** Page
 - Add `mikeonerecords@gmail.com` as an admin on both the Page and the Instagram
 
-If a 7H Music Group Instagram already exists, link that one. Do not create a
-second — two accounts for one brand splits the audience permanently and Meta's
+There is no 7H Music Group Instagram yet — the label's Instagram is the one thing
+on this list that still has to be created. When you do, link it to the Page. Never
+run two accounts for one brand: it splits the audience permanently, and Meta's
 review treats duplicates as suspicious.
+
+`@7hmusic.blog` is the blog's, not the label's. Editorial goes there and nowhere
+else, and the label's handle must never announce a blog post.
 
 ### 2. Start the one queue that matters: LinkedIn
 
@@ -126,7 +143,7 @@ Post X by hand. X's own scheduler in the compose box is free and needs no API.
 
 | Platform | Variables | Get it from |
 | --- | --- | --- |
-| Instagram | `SEVEN_INSTAGRAM_TOKEN`, `SEVEN_INSTAGRAM_ACCOUNT_ID`, optional `SEVEN_INSTAGRAM_HOST` | Meta app dashboard → Instagram → API setup → Generate token |
+| Instagram | `SEVEN_INSTAGRAM_TOKEN`, `SEVEN_INSTAGRAM_API=instagram` (or `facebook` + `SEVEN_INSTAGRAM_ACCOUNT_ID`) | Meta app dashboard → Instagram → API setup → Generate token |
 | Facebook | `SEVEN_FACEBOOK_TOKEN`, `SEVEN_FACEBOOK_ACCOUNT_ID` | Graph API Explorer: `/me/accounts` → Page id and Page token |
 | LinkedIn | `SEVEN_LINKEDIN_TOKEN`, `SEVEN_LINKEDIN_ACCOUNT_ID` (`urn:li:organization:<id>`) | After Community Management approval |
 | TikTok | `SEVEN_TIKTOK_TOKEN` | TikTok developer app; private-only until audited |

@@ -71,6 +71,18 @@ export function buildTaskPrompt(input: PromptInput): string {
   // handed a format it will try to use anyway.
   if (/\b(post|posts|caption|instagram|tiktok|social|thread|reel|schedule)\b/i.test(prompt)) {
     sections.push(POST_CONTRACT);
+
+    // The two silent publishing failures, said once, every time a post is asked
+    // for: a media post with no media is refused, and an artist's post written
+    // in the label's voice reads as fake and is the mistake that costs trust.
+    sections.push(
+      [
+        "## Before you write a post",
+        "- Instagram, Facebook and TikTok publish **media**, not text. A draft without a publicly reachable image or video url is rejected, so mark the asset you need rather than writing a caption for a file that does not exist.",
+        "- A label's account, an artist's account and the blog are three different voices. Never put the label's phrasing in an artist's mouth: his followers can tell, and it reads as the label pretending to be him.",
+        "- Plan only against accounts the owner has confirmed exist. A post drafted for a handle nobody has is work thrown away.",
+      ].join("\n"),
+    );
   }
 
   sections.push(`## Task\n${prompt}`);

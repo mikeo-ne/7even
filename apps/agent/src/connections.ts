@@ -57,26 +57,29 @@ export function connectionStates(config: Config): ConnectionState[] {
     if (platform === "instagram" || platform === "facebook" || platform === "linkedin") {
       variables.push(`SEVEN_${upper}_ACCOUNT_ID`);
     }
-    if (platform === "instagram") variables.push("SEVEN_INSTAGRAM_HOST");
+    if (platform === "instagram") variables.push("SEVEN_INSTAGRAM_API");
 
-    const connected = Boolean(
-      creds?.accessToken &&
-        (platform === "instagram" || platform === "facebook" || platform === "linkedin"
-          ? creds.accountId
-          : true),
-    );
+    // The Instagram Login API identifies the author as `me` from the token, so
+    // it needs no separate account id. Every other publishing path here posts
+    // as an object id and is not connected without one.
+    const needsAccountId =
+      platform === "facebook" ||
+      platform === "linkedin" ||
+      (platform === "instagram" && creds?.extra?.api !== "instagram");
+
+    const connected = Boolean(creds?.accessToken && (needsAccountId ? creds.accountId : true));
 
     let warning: string | undefined;
     let info: string | undefined;
 
     if (platform === "instagram" && creds?.accessToken) {
-      const host = creds.extra?.host;
-      if (!host) {
+      const api = creds.extra?.api;
+      if (!api || api === "facebook") {
         info =
-          "assuming a Facebook Page token on graph.facebook.com. On the Instagram Login path set SEVEN_INSTAGRAM_HOST=https://graph.instagram.com.";
-      } else if (host.includes("graph.instagram.com") && !creds.accountId) {
-        warning =
-          "the Instagram Login host needs the IG user id as SEVEN_INSTAGRAM_ACCOUNT_ID, not a Page id.";
+          "using the Facebook Login path, so the account must be linked to a Page and both the token and id come from graph.facebook.com. A token generated under Instagram Login will be rejected here: set SEVEN_INSTAGRAM_API=instagram.";
+      } else if (api === "instagram" && creds.accountId && !creds.extra?.host) {
+        info =
+          "on the Instagram Login path the author is `me` from the token, so the account id is only a record, not something sent. Fine to keep.";
       }
     }
 
@@ -109,7 +112,11 @@ export function pairingNotes(config: Config): string[] {
   const notes: string[] = [];
   const tokens = config.social?.tokens ?? {};
 
-  if (tokens.instagram?.accessToken && !tokens.instagram?.accountId) {
+  if (
+    tokens.instagram?.accessToken &&
+    !tokens.instagram?.accountId &&
+    tokens.instagram?.extra?.api !== "instagram"
+  ) {
     notes.push(
       "Instagram has a token but no account id. Both are needed: the token says who you are, the id says which account to post to.",
     );

@@ -32,7 +32,7 @@ const LATEST: { platform: string; title: string; body: string }[] = [
     platform: "instagram",
     title: "Instagram — free today, on the Instagram Login path",
     body:
-      "An account you own does not need an app review. Create a Meta app, add the Instagram product, choose Instagram Login, add the professional account as a tester, and generate a token in the dashboard. Publish against graph.instagram.com with instagram_business_content_publish. A review is only for posting to accounts you do not own.",
+      "An account you own does not need an app review. Create a Meta app, add the Instagram product, choose Instagram Login, add the professional account as a tester, and generate a token in the dashboard. That API addresses the author as 'me' from the token, so it needs no account id — and an Instagram Login token will be refused by graph.facebook.com. Set SEVEN_INSTAGRAM_API=instagram so the adapter uses the right one.",
   },
   {
     platform: "facebook",
@@ -67,6 +67,12 @@ export default async function SetupPage() {
 
   const present = accounts.filter((row) => row.present);
   const missing = accounts.filter((row) => !row.present);
+
+  // Handles that are written down but not certain. A post sent to the wrong
+  // handle does not fail — it simply never reaches the person it was for.
+  const unverified = accounts.filter(
+    (row) => row.present && /unconfirm|confirm|unknown|either/i.test(row.notes ?? ""),
+  );
 
   return (
     <div className="space-y-7">
@@ -137,6 +143,22 @@ export default async function SetupPage() {
           </ul>
         )}
       </Panel>
+
+      {unverified.length > 0 && (
+        <Panel title="Present, but not certain">
+          <ul className="divide-y divide-line">
+            {unverified.map((row) => (
+              <li key={row.id} className="flex flex-wrap items-center gap-2 px-5 py-3">
+                <span className="rounded bg-white/5 px-1.5 py-0.5 font-mono text-[9px] uppercase text-white/40">
+                  {row.platform}
+                </span>
+                <span className="font-mono text-xs text-white/70">{row.handle}</span>
+                <span className="text-[10px] text-amber-300">needs sight of the account</span>
+              </li>
+            ))}
+          </ul>
+        </Panel>
+      )}
 
       {missing.length > 0 && (
         <Panel title="Wanted, not yet real">

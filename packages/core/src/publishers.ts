@@ -110,12 +110,17 @@ const x: Adapter = {
  *   Instagram Login  host graph.instagram.com, scopes instagram_business_*,
  *                    no Facebook Page needed. This is the path for an account
  *                    you own, and Standard Access covers it with no review.
+ *                    It is NOT the Graph API: it lives at /v21.0/me/... behind
+ *                    a prefix of its own, and it takes graph.instagram.com
+ *                    tokens only.
  *   Facebook Login   host graph.facebook.com, scopes instagram_*, and the IG
  *                    account must be linked to a Page.
  *
- * `tokens.instagram.extra.host` picks the path; it defaults to the Graph host
- * so an existing Page token keeps working. The access token has to match the
- * host — an Instagram Login token will not work on graph.facebook.com.
+ * The token only works on the host that issued it, and mixing them up looks
+ * like a permissions bug rather than a wrong URL. So the path is explicit:
+ * `extra.api` is "instagram" or "facebook", and `extra.host` can override the
+ * base URL if Meta moves it again. Defaults to the Graph host, so an existing
+ * Page token keeps working untouched.
  */
 const instagram: Adapter = {
   platform: "instagram",
@@ -123,7 +128,10 @@ const instagram: Adapter = {
     "An Instagram professional (Business or Creator) account and a Meta app you control, with the account added as a tester in the app dashboard. Simplest path: Instagram Login (graph.instagram.com, instagram_business_content_publish) needs no Facebook Page and no app review. Put the IG user id in config.social.tokens.instagram.accountId and set extra.host if you are on the graph.facebook.com path.",
   publish: async (post, ctx) => {
     const creds = ctx.tokens.instagram;
-    if (!creds?.accessToken || !creds.accountId) {
+    // The Instagram Login API does not take an account id — the token is the
+    // account. Requiring one here would refuse a perfectly valid connection.
+    const needsAccountId = creds?.extra?.api !== "instagram";
+    if (!creds?.accessToken || (needsAccountId && !creds.accountId)) {
       return notConfigured("Instagram", instagram.requirements);
     }
     if (post.status !== "approved") return { ok: false, error: "post is not approved" };
@@ -136,8 +144,15 @@ const instagram: Adapter = {
     }
 
     const fetchImpl = ctx.fetchImpl ?? fetch;
-    const host = (creds.extra?.host ?? "https://graph.facebook.com/v21.0").replace(/\/$/, "");
-    const base = `${host}/${creds.accountId}`;
+
+    // Instagram Login addresses the author as `me`, because the token is the
+    // identity. The Graph path addresses the IG user id under the Page's app.
+    const loginApi = creds.extra?.api === "instagram";
+    const host = (
+      creds.extra?.host ??
+      (loginApi ? "https://graph.instagram.com/v21.0" : "https://graph.facebook.com/v21.0")
+    ).replace(/\/$/, "");
+    const base = loginApi ? `${host}/me` : `${host}/${creds.accountId}`;
     const caption = withTags(post);
 
     try {

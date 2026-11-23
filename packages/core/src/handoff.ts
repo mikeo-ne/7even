@@ -83,6 +83,11 @@ export function handoffFor(post: Post): Handoff {
     warning = "TikTok captions need a video. Post from the app if the media is not a video file.";
   }
 
+  if (post.platform === "facebook" && post.link) {
+    warning =
+      "Facebook demotes link posts. Put the link in the first comment, or expect the reach of a text post.";
+  }
+
   if (post.platform === "linkedin") {
     warning =
       "LinkedIn defaults to posting as you, not as a company page. Switch the author if it should be 7H.";
@@ -135,4 +140,14 @@ export const HANDOFF_STEPS: Record<string, string> = {
     "YouTube Studio → Create → Upload video → title and description → paste the description → set visibility → publish.",
   linkedin:
     "LinkedIn → Start a post → check the author dropdown says the right page → paste → add media → post.",
+  facebook:
+    "Facebook Page → Create post → paste → attach the image → check the Page is selected as the poster, not your profile → post. Schedule it in Meta Business Suite if you want a time slot.",
 };
+
+/**
+ * Platforms with no adapter, or whose adapter cannot post yet, still get a
+ * handoff — the workflow does not stop because an API is not connected.
+ */
+export function canAutoPublish(platform: string): boolean {
+  return ["x", "instagram", "tiktok", "linkedin", "facebook"].includes(platform);
+}

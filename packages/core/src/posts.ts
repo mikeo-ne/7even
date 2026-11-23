@@ -107,9 +107,24 @@ function parseBlock(body: string): PostDraft | null {
   };
 }
 
+/**
+ * An Instagram post cannot leave the building without media: the Graph API
+ * takes an image_url or a video_url and fetches it. A caption-only "image" post
+ * would fail at publish time, hours after approval, so it is rejected here where
+ * the human is still looking at it.
+ */
+const MEDIA_REQUIRED = new Set(["instagram", "tiktok"]);
+
 /** Reject rather than repair. Returns one problem per bad draft. */
 export function validateDraft(draft: PostDraft): string | null {
   if (!draft.account_handle) return "no account given";
+
+  if (MEDIA_REQUIRED.has(draft.platform) && draft.format !== "text" && draft.format !== "thread") {
+    if (!draft.media_urls || draft.media_urls.length === 0) {
+      const article = /^[aeiou]/i.test(draft.format) ? "an" : "a";
+      return `${platformName(draft.platform)} publishes media, not text — ${article} ${draft.format} post needs a publicly reachable image or video url`;
+    }
+  }
 
   const limit = PLATFORM_LIMITS.find(
     (entry) => entry.platform.toLowerCase() === platformName(draft.platform).toLowerCase(),

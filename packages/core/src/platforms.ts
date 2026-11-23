@@ -26,7 +26,7 @@ export type PlatformSpec = {
   /** Why, in one sentence you can act on. */
   automationNote: string;
   /** Whether the agent can publish through it today, as built. */
-  adapter: "x" | "instagram" | "tiktok" | "linkedin" | "youtube" | null;
+  adapter: "x" | "instagram" | "tiktok" | "linkedin" | "youtube" | "facebook" | null;
   /** Priority for 7H, with the reason. 1 = do this first. */
   priority: number;
   why: string;
@@ -40,7 +40,7 @@ export const PLATFORMS: PlatformSpec[] = [
     limits: "Caption 2,200 characters, first 125 before 'more'. Up to 30 hashtags. Feed 4:5 or 1:1, Reels 9:16.",
     automation: "review",
     automationNote:
-      "Free to post through the Graph API, but the Meta app needs instagram_content_publish approved first. That review takes days to weeks.",
+      "Free, and for an account you own there is no app review at all: the Instagram Login path (graph.instagram.com, instagram_business_content_publish) works on Standard Access once the account is added as a tester on your own Meta app. App Review is only for posting to accounts you do not own.",
     adapter: "instagram",
     priority: 1,
     why: "Baranga's audience and the label's live on Instagram. It is the account that matters most and the one worth the review.",
@@ -88,7 +88,7 @@ export const PLATFORMS: PlatformSpec[] = [
     limits: "Post 3,000 characters, 3 hashtags. Links get demoted — put them in the first comment.",
     automation: "free",
     automationNote:
-      "The Posts API posts to a Company Page on the free developer tier once the app is verified against a Page you administer. No payment.",
+      "Free to call, but company-page posting needs the Community Management API, which LinkedIn reviews by hand — roughly one to four weeks, and posts as a Page are refused until it is approved. Posting to your own profile is self-serve and instant, which is not what a label needs.",
     adapter: "linkedin",
     priority: 4,
     why: "This is where East Sound actually belongs — broadcasters, regulators and labels, not fans. For 7H it is for partners and press.",
@@ -96,13 +96,13 @@ export const PLATFORMS: PlatformSpec[] = [
   {
     platform: "Facebook",
     key: "facebook",
-    account: "A Facebook Page for each business. Required anyway, because Instagram Business needs one.",
+    account: "You already have two: a Mike 1ne Page and a 7H Music Group Page. Neither needs creating — just confirm which is the label's and attach the Instagram accounts to it.",
     limits: "Post 63,206 characters. Links are demoted in the feed.",
-    automation: "review",
-    automationNote: "Graph API posting works on the same app review as Instagram. One approval covers both.",
-    adapter: null,
-    priority: 5,
-    why: "You need the Page for Instagram regardless. Keep it in sync rather than posting separately.",
+    automation: "free",
+    automationNote: "Posting to a Page you administer is Standard Access on the Graph API: no review, no payment. It needs a Page access token with pages_manage_posts and the Page id.",
+    adapter: "facebook",
+    priority: 1,
+    why: "You own the Pages already, so this is the cheapest automation on the list — and the Page is what Instagram Business attaches to anyway.",
   },
   {
     platform: "WhatsApp Channel",

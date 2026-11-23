@@ -8,6 +8,7 @@ import { SKILLS } from "@7even/core";
 import { CONFIG_PATH, loadConfig, saveConfig, validateConfig, type Config } from "./config.js";
 import { AgentStore, createDb } from "./db.js";
 import { describeBrain } from "./brain.js";
+import { connectionsReport } from "./connections.js";
 import { startServer } from "./server.js";
 import { startScheduler } from "./scheduler.js";
 import { runTask } from "./runner.js";
@@ -188,6 +189,7 @@ async function status() {
     const health = res ? ((await res.json()) as { ok?: boolean; uptime?: number }) : null;
     log(`  bridge       ${health?.ok ? `up (${health.uptime}s)` : "not running"}`);
   }
+  for (const line of connectionsReport(config)) log(line);
   log("");
 }
 
@@ -393,6 +395,15 @@ function help() {
     7even peer refresh         re-fetch peer agent cards
     7even install              install as a macOS launch agent
     7even help                 this message
+
+  Publishing (all optional; a missing token says so instead of failing quietly)
+    SEVEN_PUBLISH=1                            allow approved posts to be sent
+    SEVEN_INSTAGRAM_TOKEN / _ACCOUNT_ID        Instagram Login path by default
+    SEVEN_INSTAGRAM_HOST                       graph.instagram.com or the Graph host
+    SEVEN_FACEBOOK_TOKEN / _ACCOUNT_ID         Page token and Page id
+    SEVEN_LINKEDIN_TOKEN / _ACCOUNT_ID         token and urn:li:organization:<id>
+    SEVEN_TIKTOK_TOKEN                         video only; unaudited apps post privately
+    SEVEN_X_TOKEN                              paid per post; leave it off
 
   Environment
     SUPABASE_URL / SUPABASE_SERVICE_ROLE_KEY   override config file

@@ -1,143 +1,138 @@
-# Accounts to set up
+# Accounts: what to do next
 
-_Checked 22 November 2026. Costs and API rules change; re-check before spending money._
+_Checked 22 November 2026. Access rules change; re-check before spending money._
 
-## Read this first
+You already have **two Facebook Pages** (Mike 1ne, 7H Music Group) and live
+TikTok accounts for both artists. That changes the plan, because **a Facebook Page
+you administer is the cheapest automation there is** — and it is also what
+Instagram Business attaches to.
 
-**X cannot be automated for free.** Its free API tier closed to new developers on
-6 February 2026. It is pay-per-use now: about **$0.015 per post**, and **$0.20 for
-any post containing a link**. A label posting links to its own site would spend
-more on X automation than on every other platform combined — for a platform that
-is not where East African music audiences are. Post X by hand; X's own scheduler
-in the compose box is free and needs no API.
+The short version:
 
-**Instagram and TikTok cost nothing but patience.** Both post for free through
-their APIs, but only after an app review. Until that passes, the agent writes and
-you paste. That is not a failure state — it is the correct state for a label whose
-posting volume is a few a week.
-
-**LinkedIn is free to automate on a company page**, and it is where East Sound's
-actual audience lives: broadcasters, regulators, labels.
+1. **Nothing to create today to start posting.** The agent drafts, you paste.
+2. **Facebook Page: free to automate immediately**, no review, because you own it.
+3. **Instagram: free to automate, no review**, if you use the Instagram Login path
+   on your own account. The review people wait weeks for is for posting to
+   *other people's* accounts, which is not your case.
+4. **LinkedIn: the one real wait.** 1–4 weeks of review. Start it, forget it.
+5. **X: post by hand.** $0.015 a post, **$0.20 if the post contains a link**.
 
 ---
 
-## Start here
+## The correction that saves weeks
 
-1. **Instagram Business** for `@7hmusicgroup`, linked to a **Facebook Page**. The
-   Page is mandatory even if you never post to it.
-2. **TikTok Business** for `@7hmusicgroup` — the one handle that is still free.
-3. **A YouTube channel** on the label's Google account.
-4. **LinkedIn Company Page** for 7H, and a separate one for East Sound.
-5. **WhatsApp Channel** on the label number. In Uganda this behaves like a mailing
-   list, and it is where release-day messages actually get read.
+App Review is not a toll on every API. It is the gate for **serving accounts you
+do not own**. Meta calls the default tier *Standard Access*, and it covers
+accounts whose owner has a role on your app — which, for a label posting to its
+own Pages and its own Instagram, is always.
 
----
+What that means in practice:
 
-## Platform by platform
+| Platform | Review needed for your own accounts? | What it actually needs |
+| --- | --- | --- |
+| Facebook Page | **No** | Page access token with `pages_manage_posts`, plus the Page id |
+| Instagram | **No** on the Instagram Login path | Professional account, Meta app, account added as a tester, token |
+| Instagram (Facebook Login path) | No, but the Page link is mandatory | Page token + IG user id on `graph.facebook.com` |
+| LinkedIn Page | **Yes** — Community Management API, 1–4 weeks | A review by a human at LinkedIn |
+| TikTok | Yes for public posting | Unaudited apps can only post privately |
+| YouTube | Yes for public uploads | New projects upload privately until audited |
 
-### Instagram — priority 1
+Two paths reach Instagram with the same published result. Pick one and stay on
+it, because the token only works on the host that issued it:
 
-| | |
-| --- | --- |
-| Account | Instagram Business or Creator, linked to a Facebook Page |
-| Format | Caption 2,200 characters (125 before "more"), up to 30 hashtags, feed 4:5, Reels 9:16 |
-| Automation | Free after Meta app review (`instagram_content_publish`) |
-| Cost | None |
-| Time | Days to weeks for review |
+- **Instagram Login** — `graph.instagram.com`, scopes `instagram_business_basic`
+  and `instagram_business_content_publish`, no Facebook Page required.
+- **Facebook Login** — `graph.facebook.com`, scopes `instagram_basic` and
+  `instagram_content_publish`, IG account must be linked to a Page.
 
-Why first: Baranga's audience and the label's live here.
-
-### TikTok — priority 1
-
-| | |
-| --- | --- |
-| Account | TikTok Business for the label; a Creator account for the artist |
-| Format | Caption 2,200 characters, ~5 hashtags that matter, 9:16 video |
-| Automation | Content Posting API, free, but needs app approval |
-| Cost | None |
-| Trap | An unaudited app can only post **privately**. A successful API call is not proof anyone saw it. |
-
-This is where the roster's reach actually is.
-
-### YouTube — priority 2
-
-| | |
-| --- | --- |
-| Account | A channel on the label's Google account |
-| Format | Title 100 characters, description 5,000, thumbnail text under 6 words |
-| Automation | Data API uploads are free, but a new project's uploads are **locked to private** until Google audits it |
-| Cost | None |
-
-Every release needs a home for the visual and the lyric video.
-
-### WhatsApp Channel — priority 2
-
-| | |
-| --- | --- |
-| Account | A Channel on the label number under a WhatsApp Business account |
-| Format | Short text, no hashtags, no link in the first message |
-| Automation | None worth it — the Business API charges per conversation and is built for support |
-| Cost | Channel is free |
-
-More valuable in Uganda than a Twitter thread. Release days, airplay alerts, demo
-replies.
-
-### X — priority 3
-
-| | |
-| --- | --- |
-| Account | A plain account. No Premium needed to post or to schedule natively. |
-| Format | 280 characters, 2 hashtags at most |
-| Automation | **Paid.** Free tier closed Feb 2026. $0.015/post, $0.20 with a link. |
-| Cost | $0 to post by hand |
-
-Keep it for industry and press reach. Do not pay to automate it.
-
-### LinkedIn — priority 4
-
-| | |
-| --- | --- |
-| Account | A Company Page for 7H and a separate one for East Sound; a personal profile to administer |
-| Format | 3,000 characters, 3 hashtags, links in the first comment |
-| Automation | **Free** on the developer tier once the app is verified against the Page |
-| Cost | None |
-
-The quiet win. East Sound belongs here more than on Instagram.
-
-### Facebook — priority 5
-
-| | |
-| --- | --- |
-| Account | A Page per business |
-| Automation | Same app review as Instagram — one approval covers both |
-
-You need the Page for Instagram regardless. Keep it in sync rather than posting
-separately.
+In the bridge, `SEVEN_INSTAGRAM_HOST` picks the host. Leave it unset and the
+adapter assumes the Graph host, so an existing Page token keeps working.
 
 ---
 
-## One account to own them all
+## What exists, and what is only planned
 
-Create every brand account from **`7hmusicgroupug@gmail.com`** — it already exists
-and is published on the site. Add **`mikeonerecords@gmail.com`** as a second admin
-on each.
+`docs/accounts-ledger.md` is the list the agent is allowed to plan against, and
+`/app/setup` renders the same data live. A handle that is not marked present is
+never planned against — that rule exists because planning against a handle that
+turns out not to exist is how a week of content gets written for an account
+nobody can post to.
 
-This matters more than any API: if the mailbox that owns the Instagram is lost, the
-account is gone. Everything else here is recoverable. That is not.
+Present today: the two Facebook Pages, `@_baranga` and `@mike.1ne_` on TikTok,
+`@_baranga` on Instagram, `@7hmusicgroup` and `@EastSoundTech` on X.
 
-Use a password manager, not the browser, and do not reuse the label password on an
-artist's account.
+Not yet real: a label Instagram, a label TikTok, a YouTube channel, LinkedIn
+Pages, an East Sound Instagram. Mike 1ne's Instagram handle is **unconfirmed** —
+the TikTok handle ends in an underscore, so do not assume the same for Instagram.
 
 ---
 
-## What the agent needs from you, in order
+## Do this, in this order
 
-1. **Nothing, to start.** It drafts, you paste. Working today.
-2. **X token** — pointless while it costs $0.20 a link. Skip it.
-3. **LinkedIn token** — free, and unlocks the first real automation. Do this one.
-4. **Meta app review** — the expensive-in-time one. Start it once Instagram is a
-   Business account, because the queue is the wait.
-5. **TikTok app** — after Meta, same reason.
+### 1. Attach Instagram to the Page (15 minutes)
 
-Publishing stays off in the bridge until `SEVEN_PUBLISH=1` **and** a token exists
-for that platform. A missing token produces an instruction, never a silent failure.
+- Instagram app → Settings → Account type → **Business**
+- Link it to the **7H Music Group** Page
+- Add `mikeonerecords@gmail.com` as an admin on both the Page and the Instagram
+
+If a 7H Music Group Instagram already exists, link that one. Do not create a
+second — two accounts for one brand splits the audience permanently and Meta's
+review treats duplicates as suspicious.
+
+### 2. Start the one queue that matters: LinkedIn
+
+Create the East Sound Technologies Company Page, then apply for the Community
+Management API on a developer app verified against it. This is the only item on
+the list where waiting is unavoidable, and East Sound is the business that
+belongs on LinkedIn — broadcasters, regulators, labels.
+
+### 3. While that sits in a queue: post from what already works
+
+Approve the weekly plan and use **copy for posting** on each card. Every card
+gives the caption, the character count, the alt text and the trap for that
+platform. That path needs no tokens and works today.
+
+### 4. Ten minutes you keep not doing
+
+`@7hmusicgroup` and `@EastSoundTech` have **zero posts**. An empty account reads
+as abandoned. One pinned post each, posted natively, is free.
+
+---
+
+## One mailbox owns everything
+
+Create every brand account from **`7hmusicgroupug@gmail.com`** — it already
+exists and is published on the site. Add **`mikeonerecords@gmail.com`** as a
+second admin on each.
+
+If the mailbox that owns an account is lost, the account is gone. Everything else
+here is recoverable; that is not. Use a password manager, never the browser, and
+never reuse the label password on an artist's account.
+
+---
+
+## Truth about X
+
+Its free API tier closed to new developers on 6 February 2026. Pay-per-use is
+about **$0.015 a post**, and **$0.20 for any post containing a link**. A label
+posting links to its own site would spend more on X automation than on every
+other platform combined, for the platform least relevant to a Ugandan audience.
+
+Post X by hand. X's own scheduler in the compose box is free and needs no API.
+
+---
+
+## What the bridge needs, per platform
+
+| Platform | Variables | Get it from |
+| --- | --- | --- |
+| Instagram | `SEVEN_INSTAGRAM_TOKEN`, `SEVEN_INSTAGRAM_ACCOUNT_ID`, optional `SEVEN_INSTAGRAM_HOST` | Meta app dashboard → Instagram → API setup → Generate token |
+| Facebook | `SEVEN_FACEBOOK_TOKEN`, `SEVEN_FACEBOOK_ACCOUNT_ID` | Graph API Explorer: `/me/accounts` → Page id and Page token |
+| LinkedIn | `SEVEN_LINKEDIN_TOKEN`, `SEVEN_LINKEDIN_ACCOUNT_ID` (`urn:li:organization:<id>`) | After Community Management approval |
+| TikTok | `SEVEN_TIKTOK_TOKEN` | TikTok developer app; private-only until audited |
+| X | `SEVEN_X_TOKEN` | Not worth it while a link post costs $0.20 |
+
+Sending stays off until **`SEVEN_PUBLISH=1`** *and* the platform's token exists.
+`7even status` now prints a Publishing block that says, per platform, connected or
+not, which variables are missing, and where the configuration would fail in a
+confusing way — for example a Page token pointed at the Instagram Login host.

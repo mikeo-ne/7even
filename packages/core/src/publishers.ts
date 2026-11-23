@@ -100,14 +100,27 @@ const x: Adapter = {
 /* --------------------------------------------------------------- Instagram --- */
 
 /**
- * Instagram Graph API, two-step: create a media container, then publish it.
+ * Instagram publishing, two-step: create a media container, then publish it.
  * Carousels need child containers first. Reels need a video container that is
  * polled until Meta has finished ingesting it.
+ *
+ * Two login paths reach the same endpoints, and the difference decides whether
+ * you wait weeks for an app review:
+ *
+ *   Instagram Login  host graph.instagram.com, scopes instagram_business_*,
+ *                    no Facebook Page needed. This is the path for an account
+ *                    you own, and Standard Access covers it with no review.
+ *   Facebook Login   host graph.facebook.com, scopes instagram_*, and the IG
+ *                    account must be linked to a Page.
+ *
+ * `tokens.instagram.extra.host` picks the path; it defaults to the Graph host
+ * so an existing Page token keeps working. The access token has to match the
+ * host — an Instagram Login token will not work on graph.facebook.com.
  */
 const instagram: Adapter = {
   platform: "instagram",
   requirements:
-    "An Instagram Business account linked to a Facebook Page, a Meta app with instagram_content_publish approved, and a long-lived page token. Put the IG user id in config.social.tokens.instagram.accountId.",
+    "An Instagram professional (Business or Creator) account and a Meta app you control, with the account added as a tester in the app dashboard. Simplest path: Instagram Login (graph.instagram.com, instagram_business_content_publish) needs no Facebook Page and no app review. Put the IG user id in config.social.tokens.instagram.accountId and set extra.host if you are on the graph.facebook.com path.",
   publish: async (post, ctx) => {
     const creds = ctx.tokens.instagram;
     if (!creds?.accessToken || !creds.accountId) {
@@ -123,7 +136,8 @@ const instagram: Adapter = {
     }
 
     const fetchImpl = ctx.fetchImpl ?? fetch;
-    const base = `https://graph.facebook.com/v21.0/${creds.accountId}`;
+    const host = (creds.extra?.host ?? "https://graph.facebook.com/v21.0").replace(/\/$/, "");
+    const base = `${host}/${creds.accountId}`;
     const caption = withTags(post);
 
     try {
@@ -156,7 +170,7 @@ const instagram: Adapter = {
         access_token: creds.accessToken,
       });
 
-      if (isVideo) await waitForContainer(fetchImpl, container, creds.accessToken);
+      if (isVideo) await waitForContainer(fetchImpl, container, creds.accessToken, host);
 
       const id = await graphPublish(fetchImpl, base, container, creds.accessToken);
       return { ok: true, externalId: id };
@@ -280,6 +294,61 @@ const linkedin: Adapter = {
   },
 };
 
+/* --------------------------------------------------------------- Facebook --- */
+
+/**
+ * Facebook Page posts. Same app, same review status as Instagram on the Graph
+ * host — and for a Page you administer, Standard Access is enough: no review,
+ * no payment. The Page is mandatory for Instagram anyway, so this is the one
+ * extra platform that costs nothing at all once the Page exists.
+ *
+ * A Page posts with a Page access token, not a user token. `accountId` is the
+ * Page id; that distinction is the usual reason this call 403s.
+ */
+const facebook: Adapter = {
+  platform: "facebook",
+  requirements:
+    "A Facebook Page you administer and a Page access token with pages_manage_posts (Standard Access, no review, for a Page you own). Put the Page id in config.social.tokens.facebook.accountId.",
+  publish: async (post, ctx) => {
+    const creds = ctx.tokens.facebook;
+    if (!creds?.accessToken || !creds.accountId) {
+      return notConfigured("Facebook", facebook.requirements);
+    }
+    if (post.status !== "approved") return { ok: false, error: "post is not approved" };
+
+    const fetchImpl = ctx.fetchImpl ?? fetch;
+    const base = `https://graph.facebook.com/v21.0/${creds.accountId}`;
+    const message = withTags(post);
+    const absolute = post.media_urls.map((url) => absolutise(url, ctx.publicUrl));
+
+    try {
+      // A photo post draws more reach than a bare status update, so when there
+      // is an image, use the photo endpoint rather than the feed one.
+      const first = absolute[0];
+      if (first) {
+        const isVideo = post.format === "video" || post.format === "reel";
+        const id = await graphPost(
+          fetchImpl,
+          isVideo ? `${base}/videos` : `${base}/photos`,
+          isVideo
+            ? { file_url: first, description: message, access_token: creds.accessToken }
+            : { url: first, caption: message, access_token: creds.accessToken },
+        );
+        return { ok: true, externalId: id };
+      }
+
+      const id = await graphPost(fetchImpl, `${base}/feed`, {
+        message,
+        ...(post.link ? { link: post.link } : {}),
+        access_token: creds.accessToken,
+      });
+      return { ok: true, externalId: id };
+    } catch (error) {
+      return { ok: false, error: error instanceof Error ? error.message : String(error) };
+    }
+  },
+};
+
 /* ---------------------------------------------------------------- helpers --- */
 
 function withTags(post: Post): string {
@@ -347,12 +416,13 @@ async function waitForContainer(
   fetchImpl: typeof fetch,
   containerId: string,
   token: string,
+  host = "https://graph.facebook.com/v21.0",
   timeoutMs = 180_000,
 ): Promise<void> {
   const deadline = Date.now() + timeoutMs;
   while (Date.now() < deadline) {
     const response = await fetchImpl(
-      `https://graph.facebook.com/v21.0/${containerId}?fields=status_code&access_token=${encodeURIComponent(token)}`,
+      `${host.replace(/\/$/, "")}/${containerId}?fields=status_code&access_token=${encodeURIComponent(token)}`,
     );
     const json = (await response.json().catch(() => ({}))) as { status_code?: string };
     if (json.status_code === "FINISHED") return;
@@ -400,11 +470,11 @@ export function splitThread(text: string, limit: number): string[] {
   return chunks;
 }
 
-export const ADAPTERS: Record<string, Adapter> = { x, instagram, tiktok, linkedin };
+export const ADAPTERS: Record<string, Adapter> = { x, instagram, tiktok, linkedin, facebook };
 
 /** Everything that is registered but cannot post, so the UI can say so plainly. */
-export const SUPPORTED = ["x", "instagram", "tiktok", "linkedin"] as const;
-export const UNSUPPORTED = ["youtube", "facebook"] as const;
+export const SUPPORTED = ["x", "instagram", "tiktok", "linkedin", "facebook"] as const;
+export const UNSUPPORTED = ["youtube"] as const;
 
 export function adapterFor(platform: string): Adapter | null {
   return ADAPTERS[platform] ?? null;

@@ -89,7 +89,7 @@ export async function loadConfig(): Promise<Config> {
   if (env.SEVEN_PUBLISH === "1" || env.SEVEN_PUBLISH === "true") {
     config.social.publishEnabled = true;
   }
-  for (const platform of ["x", "instagram", "tiktok", "linkedin"] as const) {
+  for (const platform of ["x", "instagram", "tiktok", "linkedin", "facebook"] as const) {
     const token = env[`SEVEN_${platform.toUpperCase()}_TOKEN`];
     if (token) {
       config.social.tokens[platform] = {
@@ -104,6 +104,15 @@ export async function loadConfig(): Promise<Config> {
         accountId,
       };
     }
+  }
+  // Instagram has two API hosts and the token only works on the one that issued
+  // it. Default is the Graph host, so an existing Page token keeps working.
+  const igHost = env.SEVEN_INSTAGRAM_HOST;
+  if (igHost) {
+    config.social.tokens.instagram = {
+      ...(config.social.tokens.instagram ?? { accessToken: "" }),
+      extra: { ...(config.social.tokens.instagram?.extra ?? {}), host: igHost },
+    };
   }
 
   return config;

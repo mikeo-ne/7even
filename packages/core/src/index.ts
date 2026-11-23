@@ -6,3 +6,5 @@ export * from "./channels.js";
 export * from "./posts.js";
 export * from "./publishers.js";
 export * from "./scheduler.js";
+export * from "./handoff.js";
+export * from "./platforms.js";

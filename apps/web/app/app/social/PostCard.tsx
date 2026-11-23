@@ -1,8 +1,8 @@
 "use client";
 
 import { useState } from "react";
-import { CalendarClock, Check, Clock, RotateCcw, X } from "lucide-react";
-import type { Post } from "@7even/core";
+import { CalendarClock, Check, Clock, Copy, RotateCcw, X } from "lucide-react";
+import { handoffFor, handoffText, HANDOFF_STEPS, type Post } from "@7even/core";
 import { decidePost, schedulePost } from "../actions";
 
 const LIMITS: Record<string, number> = {
@@ -36,6 +36,7 @@ const LABEL: Record<Post["status"], string> = {
 
 export function PostCard({ post, businessName, colour }: { post: Post; businessName: string; colour: string }) {
   const [preview, setPreview] = useState(false);
+  const [copied, setCopied] = useState(false);
   const limit = LIMITS[post.platform] ?? 2200;
   const length = [...post.caption].length;
   const over = length > limit;
@@ -106,7 +107,41 @@ export function PostCard({ post, businessName, colour }: { post: Post; businessN
         <p className="mt-1.5 text-[10px] text-white/25">alt: {post.alt_text}</p>
       )}
 
+      {(post.status === "approved" || post.status === "pending_approval") && (
+        <details className="mt-2">
+          <summary className="cursor-pointer text-[10px] text-white/30 hover:text-white/60">
+            how to post this · {post.platform}
+          </summary>
+          <p className="mt-1.5 text-[10px] leading-relaxed text-mute">
+            {HANDOFF_STEPS[post.platform] ?? "Post it from the platform's own app."}
+          </p>
+          {handoffFor(post).warning && (
+            <p className="mt-1 text-[10px] leading-relaxed text-amber-300/80">
+              {handoffFor(post).warning}
+            </p>
+          )}
+          {post.media_urls.length > 0 && (
+            <p className="mt-1 font-mono text-[10px] text-white/25">
+              media: {post.media_urls.join(", ")}
+            </p>
+          )}
+        </details>
+      )}
+
       <div className="mt-3 flex flex-wrap items-center gap-2">
+        <button
+          type="button"
+          onClick={() => {
+            const text = handoffText(post, businessName);
+            void navigator.clipboard?.writeText(text);
+            setCopied(true);
+            setTimeout(() => setCopied(false), 1600);
+          }}
+          className="flex items-center gap-1 rounded-full border border-line px-2.5 py-1 text-[10px] text-white/50 transition hover:text-signal"
+        >
+          <Copy className="size-3" /> {copied ? "copied" : "copy for posting"}
+        </button>
+
         <button
           type="button"
           onClick={() => setPreview((value) => !value)}

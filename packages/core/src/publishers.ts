@@ -224,6 +224,62 @@ const tiktok: Adapter = {
   },
 };
 
+
+/* ---------------------------------------------------------------- LinkedIn --- */
+
+/**
+ * LinkedIn Posts API. The only platform here that posts to a company page on a
+ * free developer tier — which makes it the best value automation of the set, and
+ * the right home for East Sound's argument and 7H's partner news.
+ *
+ * Needs a Company Page, an app verified against it (Community Management API),
+ * and an author URN in the form urn:li:organization:<id>.
+ */
+const linkedin: Adapter = {
+  platform: "linkedin",
+  requirements:
+    "A LinkedIn Company Page, an app with the Community Management API verified against it, and the organisation URN in config.social.tokens.linkedin.accountId (urn:li:organization:12345).",
+  publish: async (post, ctx) => {
+    const creds = ctx.tokens.linkedin;
+    if (!creds?.accessToken || !creds.accountId) {
+      return notConfigured("LinkedIn", linkedin.requirements);
+    }
+    if (post.status !== "approved") return { ok: false, error: "post is not approved" };
+
+    const fetchImpl = ctx.fetchImpl ?? fetch;
+    const text = [post.caption.trim(), post.hashtags.join(" ")].filter(Boolean).join("\n\n");
+
+    const response = await fetchImpl("https://api.linkedin.com/rest/posts", {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${creds.accessToken}`,
+        "Content-Type": "application/json",
+        "LinkedIn-Version": "202409",
+        "X-Restli-Protocol-Version": "2.0.0",
+      },
+      body: JSON.stringify({
+        author: creds.accountId,
+        commentary: text,
+        visibility: "PUBLIC",
+        distribution: { feedDistribution: "MAIN_FEED" },
+        lifecycleState: "PUBLISHED",
+      }),
+    });
+
+    if (!response.ok) {
+      return {
+        ok: false,
+        error: `LinkedIn rejected the post (${response.status}): ${await safeText(response)}`,
+        needsHuman: response.status === 401 || response.status === 403,
+      };
+    }
+
+    // LinkedIn returns the post URN in a header, not the body.
+    const id = response.headers.get("x-restli-id") ?? undefined;
+    return { ok: true, externalId: id };
+  },
+};
+
 /* ---------------------------------------------------------------- helpers --- */
 
 function withTags(post: Post): string {
@@ -344,11 +400,11 @@ export function splitThread(text: string, limit: number): string[] {
   return chunks;
 }
 
-export const ADAPTERS: Record<string, Adapter> = { x, instagram, tiktok };
+export const ADAPTERS: Record<string, Adapter> = { x, instagram, tiktok, linkedin };
 
 /** Everything that is registered but cannot post, so the UI can say so plainly. */
-export const SUPPORTED = ["x", "instagram", "tiktok"] as const;
-export const UNSUPPORTED = ["youtube", "facebook", "linkedin"] as const;
+export const SUPPORTED = ["x", "instagram", "tiktok", "linkedin"] as const;
+export const UNSUPPORTED = ["youtube", "facebook"] as const;
 
 export function adapterFor(platform: string): Adapter | null {
   return ADAPTERS[platform] ?? null;

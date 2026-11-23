@@ -89,7 +89,7 @@ export async function loadConfig(): Promise<Config> {
   if (env.SEVEN_PUBLISH === "1" || env.SEVEN_PUBLISH === "true") {
     config.social.publishEnabled = true;
   }
-  for (const platform of ["x", "instagram", "tiktok"] as const) {
+  for (const platform of ["x", "instagram", "tiktok", "linkedin"] as const) {
     const token = env[`SEVEN_${platform.toUpperCase()}_TOKEN`];
     if (token) {
       config.social.tokens[platform] = {
